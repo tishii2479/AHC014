@@ -2,8 +2,8 @@ import multiprocessing
 import pipes
 import subprocess
 
-CASE = 150
-TL = 2.0
+CASE = 100
+TL = 5.0
 
 
 def execute_case(seed):
@@ -11,8 +11,10 @@ def execute_case(seed):
     output_file_path = f"tools/out/{seed:04}.txt"
     with open(input_file_path) as fin:
         with open(output_file_path, "w") as fout:
-            subprocess.run(["target/release/main"], stdin=fin, stdout=fout, timeout=TL)
-            pipefile = f"pipefile_{seed:04}"
+            subprocess.run(
+                ["target/release/ahc014"], stdin=fin, stdout=fout, timeout=TL
+            )
+            pipefile = f"tools/out/pipefile_{seed:04}"
             with pipes.Template().open(pipefile, "w") as p:
                 subprocess.run(
                     ["tools/target/release/vis", input_file_path, output_file_path],
