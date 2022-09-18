@@ -33,7 +33,7 @@ impl State {
 }
 
 impl State {
-    pub fn perform_add(&mut self, square: &Square) -> Vec<Command> {
+    pub fn perform_add(&mut self, square: &Square, is_reverse: bool) -> Vec<Command> {
         assert!(Pos::is_aligned(&square.diagonal, &square.connect[0]));
         assert!(Pos::is_aligned(&square.diagonal, &square.connect[1]));
         assert!(Pos::is_aligned(&square.new_pos, &square.connect[0]));
@@ -45,20 +45,21 @@ impl State {
         }
 
         // 作ろうとしてる四角の辺に既に点、辺がないか確認する
-        if !self.grid.can_connect(&square.connect[0], &square.new_pos)
-            || !self.grid.can_connect(&square.connect[1], &square.new_pos)
-            || !self.grid.can_connect(&square.connect[0], &square.diagonal)
-            || !self.grid.can_connect(&square.connect[1], &square.diagonal)
+        if !is_reverse
+            && (!self.grid.can_connect(&square.connect[0], &square.new_pos)
+                || !self.grid.can_connect(&square.connect[1], &square.new_pos)
+                || !self.grid.can_connect(&square.connect[0], &square.diagonal)
+                || !self.grid.can_connect(&square.connect[1], &square.diagonal))
         {
             return vec![];
         }
 
         // eprintln!(
         //     "Connected: {:?}, {:?}, {:?}, {:?}",
-        //     new_pos, &square.connect[0], square.diagonal, &square.connect[1]
+        //     &square.new_pos, &square.connect[0], square.diagonal, &square.connect[1]
         // );
 
-        self.grid.create_square(&square);
+        self.grid.create_square(&square, is_reverse);
 
         self.squares.push(square.clone());
         self.points.push(square.new_pos.clone());
@@ -69,6 +70,7 @@ impl State {
         }]
     }
 
+    // TODO: add recursion limit
     pub fn perform_delete(&mut self, square: &Square, performed_commands: &mut Vec<Command>) {
         assert!(Pos::is_aligned(&square.diagonal, &square.connect[0]));
         assert!(Pos::is_aligned(&square.diagonal, &square.connect[1]));
@@ -80,7 +82,11 @@ impl State {
         // new_posの点を使って作られた四角を再帰的に消す
         let point = self.grid.point(&square.new_pos).as_ref().unwrap().clone();
         for created_point in &point.created_points {
-            assert!(self.grid.has_point(created_point));
+            // 再帰的に処理する場合、既に削除されている時があるので、その時は何もしない
+            // TODO: 正当性の確認
+            if !self.grid.has_point(&created_point) {
+                continue;
+            }
             let created_square = self
                 .grid
                 .point(created_point)
@@ -105,7 +111,6 @@ impl State {
                 .position(|x| *x == square.new_pos)
                 .unwrap(),
         );
-        // FIXME: O(n)
         self.score.base -= self.weight(&square.new_pos);
         performed_commands.push(Command::Delete {
             square: square.clone(),
@@ -137,18 +142,10 @@ fn test_delete_point() {
     ];
     let mut state = State::new(n, p);
     let copied_state = state.clone();
-    let square = Square {
-        new_pos: new_pos.clone(),
-        diagonal: diagonal.clone(),
-        connect: connect.clone(),
-    };
-    let square2 = Square {
-        new_pos: new_pos2,
-        diagonal: new_pos.clone(),
-        connect: connect2,
-    };
-    state.perform_add(&square);
-    state.perform_add(&square2);
+    let square = Square::new(new_pos.clone(), diagonal.clone(), connect.clone());
+    let square2 = Square::new(new_pos2.clone(), new_pos.clone(), connect2.clone());
+    state.perform_add(&square, false);
+    state.perform_add(&square2, false);
     state.perform_delete(&square, &mut vec![]);
     assert_eq!(state, copied_state);
 }
@@ -168,12 +165,8 @@ fn test_add_point() {
     ];
 
     let mut state = State::new(n, p);
-    let square = Square {
-        new_pos: new_pos.clone(),
-        diagonal: diagonal.clone(),
-        connect: connect.clone(),
-    };
-    assert!(state.perform_add(&square).len() == 1);
+    let square = Square::new(new_pos.clone(), diagonal.clone(), connect.clone());
+    assert_eq!(state.perform_add(&square, false).len(), 1);
     assert!(state.grid.point(&new_pos).is_some());
 
     assert!(state.grid.has_edge(&Pos { x: 1, y: 2 }, &Dir::Left));
@@ -229,11 +222,8 @@ fn test_reverse_command() {
     let p = vec![diagonal.clone(), connect[0].clone(), connect[1].clone()];
     let mut state = State::new(n, p);
     let copied_state = state.clone();
-    let square = Square {
-        new_pos: new_pos.clone(),
-        diagonal: diagonal.clone(),
-        connect: connect.clone(),
-    };
+    let square = Square::new(new_pos.clone(), diagonal.clone(), connect.clone());
+
     state.perform_command(&Command::Add {
         square: square.clone(),
     });
@@ -261,32 +251,32 @@ fn test_reverse_recursive_delete_command() {
     let diagonal = Pos { x: 0, y: 0 };
     let connect: [Pos; 2] = [Pos { x: 2, y: 0 }, Pos { x: 0, y: 2 }];
     let connect2: [Pos; 2] = [Pos { x: 2, y: 4 }, Pos { x: 4, y: 2 }];
+    let connect3: [Pos; 2] = [Pos { x: 0, y: 4 }, Pos { x: 4, y: 4 }];
     let new_pos = Pos { x: 2, y: 2 };
     let new_pos2 = Pos { x: 4, y: 4 };
-    let n: usize = 5;
+    let new_pos3 = Pos { x: 2, y: 6 };
+    let n: usize = 10;
     let p = vec![
         diagonal.clone(),
         connect[0].clone(),
         connect[1].clone(),
         connect2[0].clone(),
         connect2[1].clone(),
+        connect3[0].clone(),
     ];
     let mut state = State::new(n, p);
-    let square = Square {
-        new_pos: new_pos.clone(),
-        diagonal: diagonal.clone(),
-        connect: connect.clone(),
-    };
-    let square2 = Square {
-        new_pos: new_pos2,
-        diagonal: new_pos.clone(),
-        connect: connect2,
-    };
+    let square = Square::new(new_pos.clone(), diagonal.clone(), connect.clone());
+    let square2 = Square::new(new_pos2.clone(), new_pos.clone(), connect2.clone());
+    let square3 = Square::new(new_pos3.clone(), new_pos.clone(), connect3.clone());
+
     state.perform_command(&Command::Add {
         square: square.clone(),
     });
     state.perform_command(&Command::Add {
         square: square2.clone(),
+    });
+    state.perform_command(&Command::Add {
+        square: square3.clone(),
     });
 
     let copied_state = state.clone();
@@ -296,5 +286,6 @@ fn test_reverse_recursive_delete_command() {
     for command in performed_commands.iter().rev() {
         state.reverse_command(command);
     }
+    assert_eq!(performed_commands.len(), 3);
     assert_eq!(state, copied_state);
 }

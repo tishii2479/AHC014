@@ -16,16 +16,35 @@ impl Score {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Square {
+    pub id: i64,
     pub new_pos: Pos,
     pub diagonal: Pos,
     pub connect: [Pos; 2],
 }
 
+static mut SQUARE_COUNTER: i64 = 0;
+
+impl Square {
+    pub fn new(new_pos: Pos, diagonal: Pos, connect: [Pos; 2]) -> Square {
+        unsafe {
+            SQUARE_COUNTER += 1;
+        }
+        Square {
+            id: unsafe { SQUARE_COUNTER },
+            new_pos,
+            diagonal,
+            connect,
+        }
+    }
+}
+
+#[derive(Debug)]
 pub enum Command {
     Add { square: Square },
     Delete { square: Square },
 }
 
+#[derive(Debug)]
 pub enum Neighborhood {
     Add,
     Delete,

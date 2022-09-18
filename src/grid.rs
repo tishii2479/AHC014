@@ -32,13 +32,14 @@ impl Grid {
         return true;
     }
 
-    pub fn connect(&mut self, a: &Pos, b: &Pos) {
+    pub fn connect(&mut self, a: &Pos, b: &Pos, is_reverse: bool) {
         let dir = Pos::get_dir(a, b);
         self.add_edge(a, &dir);
         for p in Pos::between(a, b) {
             assert!(!self.has_edge(&p, &dir));
-            assert!(!self.has_point(&p));
-
+            if !is_reverse {
+                assert!(!self.has_point(&p));
+            }
             self.add_edge(&p, &dir);
             self.add_edge(&p, &dir.rev());
         }
@@ -57,7 +58,7 @@ impl Grid {
         self.remove_edge(b, &dir.rev());
     }
 
-    pub fn create_square(&mut self, square: &Square) {
+    pub fn create_square(&mut self, square: &Square, is_reverse: bool) {
         // 点を追加する
         self.add_point(
             &square.new_pos,
@@ -66,10 +67,10 @@ impl Grid {
         );
 
         // 辺を追加する
-        self.connect(&square.connect[0], &square.new_pos);
-        self.connect(&square.connect[1], &square.new_pos);
-        self.connect(&square.connect[0], &square.diagonal);
-        self.connect(&square.connect[1], &square.diagonal);
+        self.connect(&square.connect[0], &square.new_pos, is_reverse);
+        self.connect(&square.connect[1], &square.new_pos, is_reverse);
+        self.connect(&square.connect[0], &square.diagonal, is_reverse);
+        self.connect(&square.connect[1], &square.diagonal, is_reverse);
 
         // 使った点を登録する
         self.register_created_points(&square.connect[0], &square.new_pos);

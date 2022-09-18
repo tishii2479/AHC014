@@ -14,6 +14,9 @@ struct NeighborhoodSelector;
 
 impl INeighborhoodSelector for NeighborhoodSelector {
     fn select(&self) -> Neighborhood {
+        if rnd::nextf() < 0.1 {
+            return Neighborhood::Delete;
+        }
         return Neighborhood::Add;
     }
 }
@@ -38,7 +41,7 @@ impl IState for State {
 
     fn perform_command(&mut self, command: &Command) -> Vec<Command> {
         match command {
-            Command::Add { square } => self.perform_add(square),
+            Command::Add { square } => self.perform_add(square, false),
             Command::Delete { square } => {
                 let mut performed_commands: Vec<Command> = vec![];
                 self.perform_delete(square, &mut performed_commands);
@@ -54,7 +57,7 @@ impl IState for State {
                 self.perform_delete(square, &mut performed_commands);
                 performed_commands
             }
-            Command::Delete { square } => self.perform_add(square),
+            Command::Delete { square } => self.perform_add(square, true),
         };
     }
 }
@@ -120,15 +123,9 @@ impl ISolver for Solver {
                         }
 
                         let connect: [Pos; 2] = [pos_prev.clone(), pos_next.clone()];
-                        let add = Command::Add {
-                            square: Square {
-                                new_pos,
-                                diagonal: selected_p.clone(),
-                                connect,
-                            },
-                        };
-
-                        performed_commands = self.state.perform_command(&add);
+                        performed_commands = self.state.perform_command(&Command::Add {
+                            square: Square::new(new_pos, selected_p.clone(), connect),
+                        });
                         if performed_commands.len() > 0 {
                             break;
                         }
@@ -136,7 +133,14 @@ impl ISolver for Solver {
                 }
             }
             Neighborhood::Delete => {
-                panic!("Not implemented");
+                let selected_p =
+                    self.state.points[rnd::gen_range(0, self.state.points.len()) as usize].clone();
+                let point = self.state.grid.point(&selected_p).as_ref().unwrap().clone();
+                if let Some(added_info) = point.added_info {
+                    performed_commands = self
+                        .state
+                        .perform_command(&Command::Delete { square: added_info });
+                }
             }
         }
         return performed_commands;
@@ -144,9 +148,11 @@ impl ISolver for Solver {
 }
 
 impl Solver {
-    fn output(&self) {
+    fn output(&mut self) {
         println!("{}", self.state.squares.len());
+        self.state.squares.sort_by(|a, b| a.id.cmp(&b.id));
         for Square {
+            id: _,
             new_pos,
             diagonal,
             connect,
@@ -182,7 +188,7 @@ fn main() {
         state,
         neighborhood_selector: NeighborhoodSelector {},
         optimizer: Optimizer {
-            start_temp: 5000.,
+            start_temp: 10.,
             end_temp: 0.,
         },
     };
