@@ -33,8 +33,7 @@ impl IOptimizer for Optimizer {
 
 impl IState for State {
     fn get_score(&self) -> f64 {
-        // TODO: implement
-        self.squares.len() as f64
+        self.score
     }
 
     fn perform_command(&mut self, command: &Command) -> bool {
@@ -44,7 +43,11 @@ impl IState for State {
                 diagonal,
                 connect,
             } => self.perform_add(new_pos, diagonal, connect),
-            Command::Delete { pos: _ } => panic!("Not implemented"),
+            Command::Delete {
+                created_pos,
+                diagonal,
+                connect,
+            } => self.perform_delete(created_pos, diagonal, connect),
         }
     }
 
@@ -62,7 +65,6 @@ struct Solver {
 impl ISolver for Solver {
     fn solve(&mut self, time_limit: f64) {
         let mut loop_count = 0;
-
         while time::elapsed_seconds() < time_limit {
             let progress = time::elapsed_seconds() / time_limit;
             let neighborhood = self.neighborhood_selector.select();
@@ -171,5 +173,34 @@ fn main() {
     solver.solve(TIME_LIMIT);
     solver.output();
 
-    eprintln!("run_time: {}", time::elapsed_seconds());
+    if cfg!(debug_assertions) {
+        eprintln!("state_score: {}", solver.state.get_score());
+        eprintln!(
+            "real_score: {}",
+            calc_real_score(n, m, solver.state.get_score())
+        );
+        eprintln!("run_time: {}", time::elapsed_seconds());
+    }
+}
+
+fn calc_weight(n: i64, pos: &Pos) -> f64 {
+    let c = ((n - 1) / 2) as f64;
+    (pos.y as f64 - c) * (pos.y as f64 - c) + (pos.x as f64 - c) * (pos.x as f64 - c) + 1.
+}
+
+fn calc_real_score(n: usize, m: usize, score: f64) -> i64 {
+    let mut s = 0.;
+    for i in 0..n {
+        for j in 0..n {
+            s += calc_weight(
+                n as i64,
+                &Pos {
+                    x: i as i64,
+                    y: j as i64,
+                },
+            );
+        }
+    }
+    s = 1e6 * (n as f64 * n as f64) * score / (m as f64 * s);
+    s.round() as i64
 }

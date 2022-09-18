@@ -24,6 +24,7 @@ impl State {
         for pos in p.iter() {
             state.grid.add_point(pos, Point::new(&pos, false));
             state.points.push(pos.clone());
+            state.score += state.weight(&pos);
         }
         state
     }
@@ -64,8 +65,20 @@ impl State {
             connect[1].clone(),
         ));
         self.points.push(new_pos.clone());
+        self.score += self.weight(new_pos);
 
         return true;
+    }
+
+    pub fn perform_delete(&mut self, new_pos: &Pos, diagonal: &Pos, connect: &[Pos; 2]) -> bool {
+        false
+    }
+}
+
+impl State {
+    pub fn weight(&self, pos: &Pos) -> f64 {
+        let c = ((self.grid.size - 1) / 2) as f64;
+        (pos.y as f64 - c) * (pos.y as f64 - c) + (pos.x as f64 - c) * (pos.x as f64 - c) + 1.
     }
 }
 

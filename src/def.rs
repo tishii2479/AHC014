@@ -10,7 +10,9 @@ pub enum Command {
         connect: [Pos; 2],
     },
     Delete {
-        pos: Pos,
+        created_pos: Pos,
+        diagonal: Pos,
+        connect: [Pos; 2],
     },
 }
 
