@@ -1,11 +1,14 @@
 mod def; // expand
+mod grid; // expand
 mod interface; // expand
 mod lib; // expand
+mod state; // expand
 
 use def::*;
 use interface::*;
 use lib::*;
 use proconio::input;
+use state::*;
 
 struct NeighborhoodSelector;
 
@@ -167,5 +170,6 @@ fn main() {
 
     solver.solve(TIME_LIMIT);
     solver.output();
+
     eprintln!("run_time: {}", time::elapsed_seconds());
 }
