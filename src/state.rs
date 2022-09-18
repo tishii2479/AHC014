@@ -62,7 +62,7 @@ impl State {
         self.points.push(square.new_pos.clone());
         self.score.base += self.weight(&square.new_pos);
 
-        return true;
+        true
     }
 
     pub fn perform_delete(&mut self, square: &Square) -> bool {
@@ -73,7 +73,24 @@ impl State {
 
         assert!(self.grid.has_point(&square.new_pos));
 
-        false
+        // TODO: delete square recursively
+
+        self.grid.delete_square(&square);
+
+        // FIXME: O(n)
+        self.squares
+            .remove(self.squares.iter().position(|x| *x == *square).unwrap());
+        // FIXME: O(n)
+        self.points.remove(
+            self.points
+                .iter()
+                .position(|x| *x == square.new_pos)
+                .unwrap(),
+        );
+        // FIXME: O(n)
+        self.score.base -= self.weight(&square.new_pos);
+
+        true
     }
 }
 
@@ -125,11 +142,12 @@ fn test_add_point() {
     ];
 
     let mut state = State::new(n, p);
-    assert!(state.perform_add(&Square {
+    let square = Square {
         new_pos: new_pos.clone(),
         diagonal: diagonal.clone(),
-        connect: connect.clone()
-    }));
+        connect: connect.clone(),
+    };
+    assert!(state.perform_add(&square));
     assert!(state.grid.point(&new_pos).is_some());
 
     assert!(state.grid.has_edge(&Pos { x: 1, y: 2 }, &Dir::Left));
