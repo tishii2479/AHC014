@@ -217,6 +217,7 @@ impl Point {
 pub struct State {
     pub grid: Grid,
     pub points: Vec<Pos>,
+    pub squares: Vec<(Pos, Pos, Pos, Pos)>,
 }
 
 pub struct Grid {
@@ -232,11 +233,14 @@ impl Grid {
     pub fn can_connect(&self, a: &Pos, b: &Pos) -> bool {
         assert!(Pos::is_aligned(a, b));
         let dir = Pos::get_dir(a, b);
+        if self.has_edge(a, &dir) {
+            return false;
+        }
         for p in Pos::between(a, b) {
             if self.has_point(&p) {
                 return false;
             }
-            if self.has_edge(&p, &dir) {
+            if self.has_edge(&p, &dir) || self.has_edge(&p, &dir.rev()) {
                 return false;
             }
         }
@@ -338,6 +342,7 @@ impl State {
                 edges: vec![vec![vec![false; DIR_MAX]; n]; n],
             },
             points: p.clone(),
+            squares: vec![],
         };
         for pos1 in p.iter() {
             for pos2 in p.iter() {

@@ -23,8 +23,12 @@ impl State {
         assert!(Pos::is_aligned(new_pos, &connect[0]));
         assert!(Pos::is_aligned(new_pos, &connect[1]));
 
-        // posとconnectの間に既に点、辺がないか確認する
-        // MEMO: connectとdiagonalの確認はいらないかも
+        // new_posに既に点がないか確認
+        if self.grid.has_point(&new_pos) {
+            return false;
+        }
+
+        // 作ろうとしてる四角の辺に既に点、辺がないか確認する
         if !self.grid.can_connect(&connect[0], new_pos)
             || !self.grid.can_connect(&connect[1], new_pos)
             || !self.grid.can_connect(&connect[0], diagonal)
@@ -45,6 +49,18 @@ impl State {
         // nearest_pointsを付け替える
         self.grid.recognize(&connect[0], new_pos);
         self.grid.recognize(&connect[1], new_pos);
+
+        // eprintln!(
+        //     "Connected: {:?}, {:?}, {:?}, {:?}",
+        //     new_pos, &connect[0], diagonal, &connect[1]
+        // );
+
+        self.squares.push((
+            new_pos.clone(),
+            connect[0].clone(),
+            diagonal.clone(),
+            connect[1].clone(),
+        ));
 
         return true;
     }
@@ -121,9 +137,11 @@ fn main() {
 
     let mut state = State::new(n, p);
 
-    while time::elapsed_seconds() < 3. {
+    while time::elapsed_seconds() < 1. {
         let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
         let point = state.grid.point(&selected_p).as_ref().unwrap().clone();
+
+        // TODO: randomize
         for i in 0..DIR_MAX {
             let diagonal_dir = Dir::from_i64(i as i64);
             let dir_next = diagonal_dir.next();
@@ -134,11 +152,16 @@ fn main() {
                 &point.nearest_points[dir_next.val() as usize],
             ) {
                 let new_pos = pos_next + &(pos_prev - &selected_p);
+
+                if state.grid.has_point(&new_pos) {
+                    continue;
+                }
+
                 let connect: [Pos; 2] = [pos_prev.clone(), pos_next.clone()];
                 let add = Command::Add {
-                    new_pos: new_pos,
+                    new_pos,
                     diagonal: selected_p,
-                    connect: connect,
+                    connect,
                 };
                 state.perform_command(&add);
                 break;
@@ -146,5 +169,12 @@ fn main() {
         }
     }
 
+    println!("{}", state.squares.len());
+    for (p1, p2, p3, p4) in state.squares {
+        println!(
+            "{} {} {} {} {} {} {} {}",
+            p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y
+        );
+    }
     eprintln!("run_time: {}", time::elapsed_seconds());
 }
