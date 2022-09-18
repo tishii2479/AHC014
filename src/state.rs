@@ -1,12 +1,13 @@
 use crate::def::*; // ignore
 use crate::grid::*; // ignore
 
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct State {
     pub grid: Grid,
     pub points: Vec<Pos>,
     pub squares: Vec<(Pos, Pos, Pos, Pos)>,
 
-    pub score: f64,
+    pub score: i64,
 }
 
 impl State {
@@ -19,7 +20,7 @@ impl State {
             },
             points: p.clone(),
             squares: vec![],
-            score: 0.,
+            score: 0,
         };
         for pos in p.iter() {
             state.grid.add_point(pos, Point::new(&pos, false));
@@ -31,6 +32,7 @@ impl State {
 }
 
 impl State {
+    // TODO: use Square
     pub fn perform_add(&mut self, new_pos: &Pos, diagonal: &Pos, connect: &[Pos; 2]) -> bool {
         assert!(Pos::is_aligned(diagonal, &connect[0]));
         assert!(Pos::is_aligned(diagonal, &connect[1]));
@@ -70,16 +72,49 @@ impl State {
         return true;
     }
 
-    pub fn perform_delete(&mut self, new_pos: &Pos, diagonal: &Pos, connect: &[Pos; 2]) -> bool {
+    pub fn perform_delete(
+        &mut self,
+        created_pos: &Pos,
+        diagonal: &Pos,
+        connect: &[Pos; 2],
+    ) -> bool {
+        assert!(Pos::is_aligned(diagonal, &connect[0]));
+        assert!(Pos::is_aligned(diagonal, &connect[1]));
+        assert!(Pos::is_aligned(created_pos, &connect[0]));
+        assert!(Pos::is_aligned(created_pos, &connect[1]));
+
+        assert!(self.grid.has_point(created_pos));
+
         false
     }
 }
 
 impl State {
-    pub fn weight(&self, pos: &Pos) -> f64 {
-        let c = ((self.grid.size - 1) / 2) as f64;
-        (pos.y as f64 - c) * (pos.y as f64 - c) + (pos.x as f64 - c) * (pos.x as f64 - c) + 1.
+    pub fn weight(&self, pos: &Pos) -> i64 {
+        let c = ((self.grid.size - 1) / 2) as i64;
+        (pos.y as i64 - c) * (pos.y as i64 - c) + (pos.x as i64 - c) * (pos.x as i64 - c) + 1
     }
+}
+
+#[test]
+fn test_delete_point() {
+    let diagonal = Pos { x: 0, y: 0 };
+    let connect: [Pos; 2] = [Pos { x: 2, y: 0 }, Pos { x: 0, y: 2 }];
+    let other = Pos { x: 2, y: 4 };
+    let new_pos = Pos { x: 2, y: 2 };
+    let n: usize = 5;
+    let p = vec![
+        diagonal.clone(),
+        connect[0].clone(),
+        connect[1].clone(),
+        other.clone(),
+    ];
+
+    let mut state = State::new(n, p);
+    let copied_state = state.clone();
+    state.perform_add(&new_pos, &diagonal, &connect);
+    state.perform_delete(&new_pos, &diagonal, &connect);
+    assert_eq!(copied_state, state);
 }
 
 #[test]

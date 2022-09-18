@@ -3,17 +3,16 @@ use std::ops;
 
 pub const DIR_MAX: usize = 8;
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Square {
+    pub new_pos: Pos,
+    pub diagonal: Pos,
+    pub connect: [Pos; 2],
+}
+
 pub enum Command {
-    Add {
-        new_pos: Pos,
-        diagonal: Pos,
-        connect: [Pos; 2],
-    },
-    Delete {
-        created_pos: Pos,
-        diagonal: Pos,
-        connect: [Pos; 2],
-    },
+    Add { square: Square },
+    Delete { square: Square },
 }
 
 pub enum Neighborhood {
@@ -207,7 +206,7 @@ impl ops::Sub<&Pos> for &Pos {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Point {
     pub pos: Pos,
     // 追加された点かどうか
@@ -219,16 +218,19 @@ pub struct Point {
     pub created_points: Vec<Pos>,
     // 各方向が長方形の辺に使われているか
     pub used_dir: Vec<bool>,
+    // 追加されたときに使われた点の情報
+    pub added_info: Option<Square>,
 }
 
 impl Point {
     pub fn new(pos: &Pos, is_added: bool) -> Point {
         Point {
             pos: pos.clone(),
-            is_added: is_added,
+            is_added,
             nearest_points: vec![None; DIR_MAX],
             created_points: vec![],
             used_dir: vec![false; DIR_MAX],
+            added_info: None,
         }
     }
 }

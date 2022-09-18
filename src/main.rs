@@ -33,20 +33,26 @@ impl IOptimizer for Optimizer {
 
 impl IState for State {
     fn get_score(&self) -> f64 {
-        self.score
+        self.score as f64
     }
 
     fn perform_command(&mut self, command: &Command) -> bool {
         match command {
             Command::Add {
-                new_pos,
-                diagonal,
-                connect,
+                square:
+                    Square {
+                        new_pos,
+                        diagonal,
+                        connect,
+                    },
             } => self.perform_add(new_pos, diagonal, connect),
             Command::Delete {
-                created_pos,
-                diagonal,
-                connect,
+                square:
+                    Square {
+                        new_pos: created_pos,
+                        diagonal,
+                        connect,
+                    },
             } => self.perform_delete(created_pos, diagonal, connect),
         }
     }
@@ -118,9 +124,11 @@ impl ISolver for Solver {
 
                         let connect: [Pos; 2] = [pos_prev.clone(), pos_next.clone()];
                         let add = Command::Add {
-                            new_pos,
-                            diagonal: selected_p.clone(),
-                            connect,
+                            square: Square {
+                                new_pos,
+                                diagonal: selected_p.clone(),
+                                connect,
+                            },
                         };
 
                         if self.state.perform_command(&add) {
@@ -177,19 +185,19 @@ fn main() {
         eprintln!("state_score: {}", solver.state.get_score());
         eprintln!(
             "real_score: {}",
-            calc_real_score(n, m, solver.state.get_score())
+            calc_real_score(n, m, solver.state.get_score() as i64)
         );
         eprintln!("run_time: {}", time::elapsed_seconds());
     }
 }
 
-fn calc_weight(n: i64, pos: &Pos) -> f64 {
-    let c = ((n - 1) / 2) as f64;
-    (pos.y as f64 - c) * (pos.y as f64 - c) + (pos.x as f64 - c) * (pos.x as f64 - c) + 1.
+fn calc_weight(n: i64, pos: &Pos) -> i64 {
+    let c = ((n - 1) / 2) as i64;
+    (pos.y as i64 - c) * (pos.y as i64 - c) + (pos.x as i64 - c) * (pos.x as i64 - c) + 1
 }
 
-fn calc_real_score(n: usize, m: usize, score: f64) -> i64 {
-    let mut s = 0.;
+fn calc_real_score(n: usize, m: usize, score: i64) -> i64 {
+    let mut s = 0;
     for i in 0..n {
         for j in 0..n {
             s += calc_weight(
@@ -201,6 +209,6 @@ fn calc_real_score(n: usize, m: usize, score: f64) -> i64 {
             );
         }
     }
-    s = 1e6 * (n as f64 * n as f64) * score / (m as f64 * s);
-    s.round() as i64
+    let result = 1e6 * (n as f64 * n as f64) * score as f64 / (m as f64 * s as f64);
+    result.round() as i64
 }

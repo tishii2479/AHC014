@@ -1,5 +1,6 @@
 use crate::def::*;
 
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Grid {
     pub size: usize,
     pub points: Vec<Vec<Option<Point>>>,
@@ -31,7 +32,7 @@ impl Grid {
         return true;
     }
 
-    pub fn connect(&mut self, a: &Pos, b: &Pos) {
+    pub fn connect_edge(&mut self, a: &Pos, b: &Pos) {
         let dir = Pos::get_dir(a, b);
         self.add_edge(a, &dir);
         for p in Pos::between(a, b) {
@@ -49,10 +50,10 @@ impl Grid {
         self.add_point(new_pos, Point::new(new_pos, true));
 
         // 辺を追加する
-        self.connect(&connect[0], new_pos);
-        self.connect(&connect[1], new_pos);
-        self.connect(&connect[0], diagonal);
-        self.connect(&connect[1], diagonal);
+        self.connect_edge(&connect[0], new_pos);
+        self.connect_edge(&connect[1], new_pos);
+        self.connect_edge(&connect[0], diagonal);
+        self.connect_edge(&connect[1], diagonal);
 
         // 使った点を登録する
         self.register_created_points(&connect[0], &new_pos);
