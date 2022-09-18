@@ -33,7 +33,7 @@ impl State {
 }
 
 impl State {
-    pub fn perform_add(&mut self, square: &Square) -> bool {
+    pub fn perform_add(&mut self, square: &Square) -> Vec<Command> {
         assert!(Pos::is_aligned(&square.diagonal, &square.connect[0]));
         assert!(Pos::is_aligned(&square.diagonal, &square.connect[1]));
         assert!(Pos::is_aligned(&square.new_pos, &square.connect[0]));
@@ -41,7 +41,7 @@ impl State {
 
         // new_posに既に点がないか確認
         if self.grid.has_point(&square.new_pos) {
-            return false;
+            return vec![];
         }
 
         // 作ろうとしてる四角の辺に既に点、辺がないか確認する
@@ -50,7 +50,7 @@ impl State {
             || !self.grid.can_connect(&square.connect[0], &square.diagonal)
             || !self.grid.can_connect(&square.connect[1], &square.diagonal)
         {
-            return false;
+            return vec![];
         }
 
         // eprintln!(
@@ -64,10 +64,12 @@ impl State {
         self.points.push(square.new_pos.clone());
         self.score.base += self.weight(&square.new_pos);
 
-        true
+        vec![Command::Add {
+            square: square.clone(),
+        }]
     }
 
-    pub fn perform_delete(&mut self, square: &Square) -> bool {
+    pub fn perform_delete(&mut self, square: &Square, performed_commands: &mut Vec<Command>) {
         assert!(Pos::is_aligned(&square.diagonal, &square.connect[0]));
         assert!(Pos::is_aligned(&square.diagonal, &square.connect[1]));
         assert!(Pos::is_aligned(&square.new_pos, &square.connect[0]));
@@ -88,7 +90,7 @@ impl State {
                 .as_ref()
                 .unwrap()
                 .clone();
-            self.perform_delete(&created_square);
+            self.perform_delete(&created_square, performed_commands);
         }
 
         self.grid.delete_square(&square);
@@ -105,8 +107,9 @@ impl State {
         );
         // FIXME: O(n)
         self.score.base -= self.weight(&square.new_pos);
-
-        true
+        performed_commands.push(Command::Delete {
+            square: square.clone(),
+        });
     }
 }
 
@@ -146,7 +149,7 @@ fn test_delete_point() {
     };
     state.perform_add(&square);
     state.perform_add(&square2);
-    state.perform_delete(&square);
+    state.perform_delete(&square, &mut vec![]);
     assert_eq!(state, copied_state);
 }
 
@@ -170,7 +173,7 @@ fn test_add_point() {
         diagonal: diagonal.clone(),
         connect: connect.clone(),
     };
-    assert!(state.perform_add(&square));
+    assert!(state.perform_add(&square).len() == 1);
     assert!(state.grid.point(&new_pos).is_some());
 
     assert!(state.grid.has_edge(&Pos { x: 1, y: 2 }, &Dir::Left));
@@ -250,5 +253,48 @@ fn test_reverse_command() {
     state.reverse_command(&Command::Delete {
         square: square.clone(),
     });
+    assert_eq!(state, copied_state);
+}
+
+#[test]
+fn test_reverse_recursive_delete_command() {
+    let diagonal = Pos { x: 0, y: 0 };
+    let connect: [Pos; 2] = [Pos { x: 2, y: 0 }, Pos { x: 0, y: 2 }];
+    let connect2: [Pos; 2] = [Pos { x: 2, y: 4 }, Pos { x: 4, y: 2 }];
+    let new_pos = Pos { x: 2, y: 2 };
+    let new_pos2 = Pos { x: 4, y: 4 };
+    let n: usize = 5;
+    let p = vec![
+        diagonal.clone(),
+        connect[0].clone(),
+        connect[1].clone(),
+        connect2[0].clone(),
+        connect2[1].clone(),
+    ];
+    let mut state = State::new(n, p);
+    let square = Square {
+        new_pos: new_pos.clone(),
+        diagonal: diagonal.clone(),
+        connect: connect.clone(),
+    };
+    let square2 = Square {
+        new_pos: new_pos2,
+        diagonal: new_pos.clone(),
+        connect: connect2,
+    };
+    state.perform_command(&Command::Add {
+        square: square.clone(),
+    });
+    state.perform_command(&Command::Add {
+        square: square2.clone(),
+    });
+
+    let copied_state = state.clone();
+    let performed_commands = state.perform_command(&Command::Delete {
+        square: square.clone(),
+    });
+    for command in performed_commands.iter().rev() {
+        state.reverse_command(command);
+    }
     assert_eq!(state, copied_state);
 }

@@ -36,16 +36,24 @@ impl IState for State {
         self.score.get_score()
     }
 
-    fn perform_command(&mut self, command: &Command) -> bool {
+    fn perform_command(&mut self, command: &Command) -> Vec<Command> {
         match command {
             Command::Add { square } => self.perform_add(square),
-            Command::Delete { square } => self.perform_delete(square),
+            Command::Delete { square } => {
+                let mut performed_commands: Vec<Command> = vec![];
+                self.perform_delete(square, &mut performed_commands);
+                performed_commands
+            }
         }
     }
 
     fn reverse_command(&mut self, command: &Command) {
         match command {
-            Command::Add { square } => self.perform_delete(square),
+            Command::Add { square } => {
+                let mut performed_commands: Vec<Command> = vec![];
+                self.perform_delete(square, &mut performed_commands);
+                performed_commands
+            }
             Command::Delete { square } => self.perform_add(square),
         };
     }
@@ -85,7 +93,7 @@ impl ISolver for Solver {
     }
 
     fn perform_neighborhood(&mut self, neighborhood: Neighborhood) -> Vec<Command> {
-        let mut performed_command: Vec<Command> = vec![];
+        let mut performed_commands: Vec<Command> = vec![];
         match neighborhood {
             Neighborhood::Add => {
                 let selected_p =
@@ -120,8 +128,8 @@ impl ISolver for Solver {
                             },
                         };
 
-                        if self.state.perform_command(&add) {
-                            performed_command.push(add);
+                        performed_commands = self.state.perform_command(&add);
+                        if performed_commands.len() > 0 {
                             break;
                         }
                     }
@@ -131,7 +139,7 @@ impl ISolver for Solver {
                 panic!("Not implemented");
             }
         }
-        return performed_command;
+        return performed_commands;
     }
 }
 
