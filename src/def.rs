@@ -290,41 +290,6 @@ impl Grid {
         self.edges[pos.y as usize][pos.x as usize][dir.val() as usize].clone()
     }
 
-    pub fn recognize(&mut self, a: &Pos, target: &Pos) {
-        if !Pos::is_aligned(a, target) {
-            return;
-        }
-        let dir = Pos::get_dir(a, target);
-        let point_a = self.point(a).as_mut().unwrap();
-        match &point_a.nearest_points[dir.val() as usize].clone() {
-            Some(current_nearest_pos) => {
-                // from
-                // a <-> current_nearest_pos
-                // to
-                // a <-> target <-> current_nearest_pos
-                // -> dir
-                // <- dir.rev()
-                if Pos::dist(a, target) < Pos::dist(a, &current_nearest_pos) {
-                    point_a.nearest_points[dir.val() as usize] = Some(target.clone());
-                    self.point(current_nearest_pos)
-                        .as_mut()
-                        .unwrap()
-                        .nearest_points[dir.rev() as usize] = Some(target.clone());
-                    self.point(target).as_mut().unwrap().nearest_points[dir.rev() as usize] =
-                        Some(a.clone());
-                    self.point(target).as_mut().unwrap().nearest_points[dir.val() as usize] =
-                        Some(current_nearest_pos.clone());
-                }
-            }
-            None => {
-                // a <-> target
-                point_a.nearest_points[dir.val() as usize] = Some(target.clone());
-                self.point(target).as_mut().unwrap().nearest_points[dir.rev() as usize] =
-                    Some(a.clone());
-            }
-        }
-    }
-
     pub fn nearest_point_pos(&self, from: &Pos, dir: &Dir) -> Option<Pos> {
         let mut cur = from.clone();
 
@@ -364,34 +329,19 @@ pub enum Neighborhood {
 
 impl State {
     pub fn new(n: usize, p: Vec<Pos>) -> State {
-        let mut data: Vec<Vec<Option<Point>>> = vec![vec![None; n]; n];
-        for pos in p.iter() {
-            let point = Point::new(pos, false);
-            data[pos.y as usize][pos.x as usize] = Some(point);
-        }
-
         let mut state = State {
             grid: Grid {
                 size: n,
-                points: data,
+                points: vec![vec![None; n]; n],
                 edges: vec![vec![vec![false; DIR_MAX]; n]; n],
             },
             points: p.clone(),
             squares: vec![],
         };
-        for pos1 in p.iter() {
-            for pos2 in p.iter() {
-                if !Pos::is_aligned(pos1, pos2) {
-                    continue;
-                }
-                state.grid.recognize(pos1, pos2);
-                state.grid.recognize(pos2, pos1);
-            }
+        for pos in p.iter() {
+            state.grid.set_point(pos, Point::new(&pos, false));
+            state.points.push(pos.clone());
         }
-
         state
     }
 }
-
-#[test]
-fn test_recognize() {}

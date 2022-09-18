@@ -133,7 +133,7 @@ fn main() {
 
     let mut state = State::new(n, p);
 
-    while time::elapsed_seconds() < 1. {
+    while time::elapsed_seconds() < 2. {
         let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
         let point = state.grid.point(&selected_p).as_ref().unwrap().clone();
 
