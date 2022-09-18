@@ -1,4 +1,5 @@
 use crate::def::*; // ignore
+#[allow(unused_imports)] // ignore
 use crate::framework::IState; // ignore
 use crate::grid::*; // ignore
 
@@ -241,6 +242,7 @@ fn test_reverse_command() {
     state.perform_command(&Command::Add {
         square: square.clone(),
     });
+
     let copied_state = state.clone();
     state.perform_command(&Command::Delete {
         square: square.clone(),
