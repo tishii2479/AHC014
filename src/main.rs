@@ -1,63 +1,171 @@
 mod def; // expand
+mod interface; // expand
 mod lib; // expand
 
 use def::*;
+use interface::*;
 use lib::*;
 use proconio::input;
 
+struct NeighborhoodSelector;
+
+impl INeighborhoodSelector for NeighborhoodSelector {
+    fn select(&self) -> Neighborhood {
+        return Neighborhood::Add;
+    }
+}
+
+struct Optimizer {
+    start_temp: f64,
+    end_temp: f64,
+}
+
+impl IOptimizer for Optimizer {
+    fn should_adopt_new_state(&self, score_diff: f64, progress: f64) -> bool {
+        let temp = self.start_temp + (self.end_temp - self.start_temp) * progress;
+        let prob = (score_diff / temp).exp();
+        return prob > rnd::nextf();
+    }
+}
+
+impl IState for State {
+    fn get_score(&self) -> f64 {
+        // TODO: implement
+        self.squares.len() as f64
+    }
+
+    fn perform_command(&mut self, command: &Command) -> bool {
+        match command {
+            Command::Add {
+                new_pos,
+                diagonal,
+                connect,
+            } => self.perform_add(new_pos, diagonal, connect),
+            Command::Delete { pos: _ } => panic!("Not implemented"),
+        }
+    }
+
+    fn reverse_command(&mut self, command: &Command) {
+        // TODO: Implement
+    }
+}
+
+struct Solver {
+    state: State,
+    neighborhood_selector: NeighborhoodSelector,
+    optimizer: Optimizer,
+}
+
+impl ISolver for Solver {
+    fn solve(&mut self, time_limit: f64) {
+        let mut loop_count = 0;
+
+        while time::elapsed_seconds() < time_limit {
+            let progress = time::elapsed_seconds() / time_limit;
+            let neighborhood = self.neighborhood_selector.select();
+
+            let current_score = self.state.get_score();
+
+            let performed_commands = self.perform_neighborhood(neighborhood);
+
+            let new_score = self.state.get_score();
+
+            let adopt_new_state = self
+                .optimizer
+                .should_adopt_new_state(new_score - current_score, progress);
+
+            if !adopt_new_state {
+                for command in performed_commands.iter().rev() {
+                    self.state.reverse_command(command);
+                }
+            }
+            loop_count += 1;
+        }
+        eprintln!("loop_count: {}", loop_count);
+    }
+
+    fn perform_neighborhood(&mut self, neighborhood: Neighborhood) -> Vec<Command> {
+        let mut performed_command: Vec<Command> = vec![];
+        match neighborhood {
+            Neighborhood::Add => {
+                let selected_p =
+                    self.state.points[rnd::gen_range(0, self.state.points.len()) as usize].clone();
+                let point = self.state.grid.point(&selected_p).as_ref().unwrap().clone();
+
+                // TODO: randomize
+                for i in 0..DIR_MAX {
+                    let diagonal_dir = Dir::from_i64(i as i64);
+                    let dir_next = diagonal_dir.next();
+                    let dir_prev = diagonal_dir.prev();
+
+                    if let (Some(pos_prev), Some(pos_next)) = (
+                        &point.nearest_points[dir_prev.val() as usize],
+                        &point.nearest_points[dir_next.val() as usize],
+                    ) {
+                        let new_pos = pos_next + &(pos_prev - &selected_p);
+
+                        if !self.state.grid.is_valid(&new_pos) {
+                            continue;
+                        }
+                        if self.state.grid.has_point(&new_pos) {
+                            continue;
+                        }
+
+                        let connect: [Pos; 2] = [pos_prev.clone(), pos_next.clone()];
+                        let add = Command::Add {
+                            new_pos,
+                            diagonal: selected_p.clone(),
+                            connect,
+                        };
+
+                        if self.state.perform_command(&add) {
+                            performed_command.push(add);
+                            break;
+                        }
+                    }
+                }
+            }
+            Neighborhood::Delete => {
+                panic!("Not implemented");
+            }
+        }
+        return performed_command;
+    }
+}
+
+impl Solver {
+    fn output(&self) {
+        println!("{}", self.state.squares.len());
+        for (p1, p2, p3, p4) in &self.state.squares {
+            println!(
+                "{} {} {} {} {} {} {} {}",
+                p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y
+            );
+        }
+    }
+}
+
 fn main() {
     time::start_clock();
+
+    const TIME_LIMIT: f64 = 1.9;
     input! {
         n: usize,
         m: usize,
         p: [Pos; m]
     }
 
-    let mut state = State::new(n, p);
+    let state = State::new(n, p);
+    let mut solver = Solver {
+        state,
+        neighborhood_selector: NeighborhoodSelector {},
+        optimizer: Optimizer {
+            start_temp: 5000.,
+            end_temp: 0.,
+        },
+    };
 
-    while time::elapsed_seconds() < 2. {
-        let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
-        let point = state.grid.point(&selected_p).as_ref().unwrap().clone();
-
-        // TODO: randomize
-        for i in 0..DIR_MAX {
-            let diagonal_dir = Dir::from_i64(i as i64);
-            let dir_next = diagonal_dir.next();
-            let dir_prev = diagonal_dir.prev();
-
-            if let (Some(pos_prev), Some(pos_next)) = (
-                &point.nearest_points[dir_prev.val() as usize],
-                &point.nearest_points[dir_next.val() as usize],
-            ) {
-                let new_pos = pos_next + &(pos_prev - &selected_p);
-
-                if !state.grid.is_valid(&new_pos) {
-                    continue;
-                }
-                if state.grid.has_point(&new_pos) {
-                    continue;
-                }
-
-                let connect: [Pos; 2] = [pos_prev.clone(), pos_next.clone()];
-                let add = Command::Add {
-                    new_pos,
-                    diagonal: selected_p.clone(),
-                    connect,
-                };
-
-                if state.perform_command(&add) {
-                    break;
-                }
-            }
-        }
-    }
-
-    println!("{}", state.squares.len());
-    for (p1, p2, p3, p4) in state.squares {
-        println!(
-            "{} {} {} {} {} {} {} {}",
-            p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y
-        );
-    }
+    solver.solve(TIME_LIMIT);
+    solver.output();
     eprintln!("run_time: {}", time::elapsed_seconds());
 }

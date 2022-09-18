@@ -347,17 +347,6 @@ impl State {
 }
 
 impl State {
-    pub fn perform_command(&mut self, command: &Command) -> bool {
-        match command {
-            Command::Add {
-                new_pos,
-                diagonal,
-                connect,
-            } => self.perform_add(new_pos, diagonal, connect),
-            Command::Delete { pos: _ } => panic!("Not implemented"),
-        }
-    }
-
     pub fn perform_add(&mut self, new_pos: &Pos, diagonal: &Pos, connect: &[Pos; 2]) -> bool {
         assert!(Pos::is_aligned(diagonal, &connect[0]));
         assert!(Pos::is_aligned(diagonal, &connect[1]));
