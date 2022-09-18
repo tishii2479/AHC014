@@ -44,7 +44,10 @@ impl IState for State {
     }
 
     fn reverse_command(&mut self, command: &Command) {
-        // TODO: Implement
+        match command {
+            Command::Add { square } => self.perform_delete(square),
+            Command::Delete { square } => self.perform_add(square),
+        };
     }
 }
 

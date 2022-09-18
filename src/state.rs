@@ -1,4 +1,5 @@
 use crate::def::*; // ignore
+use crate::framework::IState; // ignore
 use crate::grid::*; // ignore
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -137,15 +138,15 @@ fn test_delete_point() {
         diagonal: diagonal.clone(),
         connect: connect.clone(),
     };
-    state.perform_add(&square);
     let square2 = Square {
         new_pos: new_pos2,
         diagonal: new_pos.clone(),
         connect: connect2,
     };
+    state.perform_add(&square);
     state.perform_add(&square2);
     state.perform_delete(&square);
-    assert_eq!(copied_state, state);
+    assert_eq!(state, copied_state);
 }
 
 #[test]
@@ -213,4 +214,39 @@ fn test_add_point() {
         }
         None => assert!(false),
     }
+}
+
+#[test]
+fn test_reverse_command() {
+    let diagonal = Pos { x: 0, y: 0 };
+    let connect: [Pos; 2] = [Pos { x: 2, y: 0 }, Pos { x: 0, y: 2 }];
+    let new_pos = Pos { x: 2, y: 2 };
+    let n: usize = 5;
+    let p = vec![diagonal.clone(), connect[0].clone(), connect[1].clone()];
+    let mut state = State::new(n, p);
+    let copied_state = state.clone();
+    let square = Square {
+        new_pos: new_pos.clone(),
+        diagonal: diagonal.clone(),
+        connect: connect.clone(),
+    };
+    state.perform_command(&Command::Add {
+        square: square.clone(),
+    });
+    state.reverse_command(&Command::Add {
+        square: square.clone(),
+    });
+    assert_eq!(state, copied_state);
+
+    state.perform_command(&Command::Add {
+        square: square.clone(),
+    });
+    let copied_state = state.clone();
+    state.perform_command(&Command::Delete {
+        square: square.clone(),
+    });
+    state.reverse_command(&Command::Delete {
+        square: square.clone(),
+    });
+    assert_eq!(state, copied_state);
 }
