@@ -32,7 +32,8 @@ def main():
     subprocess.run("cargo build --release", shell=True)
     with multiprocessing.Pool(max(1, multiprocessing.cpu_count() - 2)) as pool:
         for seed, score in pool.imap_unordered(execute_case, range(CASE)):
-            print(count % 10, end="", flush=True)
+            if count % 10 == 0:
+                print(f"Case: {count}", flush=True)
             try:
                 scores.append((int(score.split()[2]), f"{seed:04}"))
             except ValueError:
@@ -52,6 +53,17 @@ def main():
     print(f"max: {scores[-1]}")
     print(f"ave: {ave}")
     print(f"min: {scores[0]}")
+
+    div = 20
+    cnt = [0] * div
+    base = 350000
+    step = 50000
+    for s in scores:
+        cnt[(s[0] - base) // step] += 1
+
+    for i in range(div):
+        score = base + i * step
+        print(f"{score:7} ~ {score + step - 1:7}: " + "o" * (cnt[i] * 100 // CASE))
 
 
 if __name__ == "__main__":
