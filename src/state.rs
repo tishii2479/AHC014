@@ -6,8 +6,7 @@ pub struct State {
     pub grid: Grid,
     pub points: Vec<Pos>,
     pub squares: Vec<Square>,
-
-    pub score: i64,
+    pub score: Score,
 }
 
 impl State {
@@ -20,12 +19,12 @@ impl State {
             },
             points: p.clone(),
             squares: vec![],
-            score: 0,
+            score: Score { base: 0 },
         };
         for pos in p.iter() {
             state.grid.add_point(pos, Point::new(&pos, false));
             state.points.push(pos.clone());
-            state.score += state.weight(&pos);
+            state.score.base += state.weight(&pos);
         }
         state
     }
@@ -61,7 +60,7 @@ impl State {
 
         self.squares.push(square.clone());
         self.points.push(square.new_pos.clone());
-        self.score += self.weight(&square.new_pos);
+        self.score.base += self.weight(&square.new_pos);
 
         return true;
     }
@@ -101,16 +100,13 @@ fn test_delete_point() {
 
     let mut state = State::new(n, p);
     let copied_state = state.clone();
-    state.perform_add(&Square {
+    let square = Square {
         new_pos: new_pos.clone(),
         diagonal: diagonal.clone(),
         connect: connect.clone(),
-    });
-    state.perform_delete(&Square {
-        new_pos: new_pos.clone(),
-        diagonal: diagonal.clone(),
-        connect: connect.clone(),
-    });
+    };
+    state.perform_add(&square);
+    state.perform_delete(&square);
     assert_eq!(copied_state, state);
 }
 

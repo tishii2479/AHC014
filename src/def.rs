@@ -4,6 +4,17 @@ use std::ops;
 pub const DIR_MAX: usize = 8;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Score {
+    pub base: i64,
+}
+
+impl Score {
+    pub fn get_score(&self) -> f64 {
+        self.base as f64
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Square {
     pub new_pos: Pos,
     pub diagonal: Pos,

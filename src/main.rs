@@ -33,7 +33,7 @@ impl IOptimizer for Optimizer {
 
 impl IState for State {
     fn get_score(&self) -> f64 {
-        self.score as f64
+        self.score.get_score()
     }
 
     fn perform_command(&mut self, command: &Command) -> bool {
