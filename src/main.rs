@@ -1,11 +1,11 @@
 mod def; // expand
+mod framework; // expand
 mod grid; // expand
-mod interface; // expand
 mod lib; // expand
 mod state; // expand
 
 use def::*;
-use interface::*;
+use framework::*;
 use lib::*;
 use proconio::input;
 use state::*;

@@ -5,6 +5,8 @@ pub struct State {
     pub grid: Grid,
     pub points: Vec<Pos>,
     pub squares: Vec<(Pos, Pos, Pos, Pos)>,
+
+    pub score: f64,
 }
 
 impl State {
@@ -17,9 +19,10 @@ impl State {
             },
             points: p.clone(),
             squares: vec![],
+            score: 0.,
         };
         for pos in p.iter() {
-            state.grid.set_point(pos, Point::new(&pos, false));
+            state.grid.add_point(pos, Point::new(&pos, false));
             state.points.push(pos.clone());
         }
         state
@@ -47,19 +50,12 @@ impl State {
             return false;
         }
 
-        // 点を追加する
-        self.grid.set_point(new_pos, Point::new(new_pos, true));
-
-        // 辺を追加する
-        self.grid.connect(&connect[0], new_pos);
-        self.grid.connect(&connect[1], new_pos);
-        self.grid.connect(&connect[0], diagonal);
-        self.grid.connect(&connect[1], diagonal);
-
         // eprintln!(
         //     "Connected: {:?}, {:?}, {:?}, {:?}",
         //     new_pos, &connect[0], diagonal, &connect[1]
         // );
+
+        self.grid.create_square(&new_pos, &diagonal, &connect);
 
         self.squares.push((
             new_pos.clone(),
@@ -100,6 +96,8 @@ fn test_add_point() {
                 point_other.nearest_points[Dir::Up.val() as usize],
                 Some(Pos { x: 2, y: 2 })
             );
+
+            assert!(point_other.created_points[0] == Pos { x: 2, y: 2 });
         }
         None => assert!(false),
     }

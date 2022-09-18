@@ -33,18 +33,34 @@ impl Grid {
 
     pub fn connect(&mut self, a: &Pos, b: &Pos) {
         let dir = Pos::get_dir(a, b);
-        self.set_edge(a, &dir);
+        self.add_edge(a, &dir);
         for p in Pos::between(a, b) {
             assert!(!self.has_edge(&p, &dir));
             assert!(!self.has_point(&p));
 
-            self.set_edge(&p, &dir);
-            self.set_edge(&p, &dir.rev());
+            self.add_edge(&p, &dir);
+            self.add_edge(&p, &dir.rev());
         }
-        self.set_edge(b, &dir.rev());
+        self.add_edge(b, &dir.rev());
     }
 
-    pub fn set_point(&mut self, pos: &Pos, mut point: Point) {
+    pub fn create_square(&mut self, new_pos: &Pos, diagonal: &Pos, connect: &[Pos; 2]) {
+        // 点を追加する
+        self.add_point(new_pos, Point::new(new_pos, true));
+
+        // 辺を追加する
+        self.connect(&connect[0], new_pos);
+        self.connect(&connect[1], new_pos);
+        self.connect(&connect[0], diagonal);
+        self.connect(&connect[1], diagonal);
+
+        // 使った点を登録する
+        self.register_created_points(&connect[0], &new_pos);
+        self.register_created_points(&connect[1], &new_pos);
+        self.register_created_points(&diagonal, &new_pos);
+    }
+
+    pub fn add_point(&mut self, pos: &Pos, mut point: Point) {
         assert!(!self.has_point(&pos));
         for i in 0..DIR_MAX {
             let dir = Dir::from_i64(i as i64);
@@ -57,7 +73,7 @@ impl Grid {
         self.points[pos.y as usize][pos.x as usize] = Some(point);
     }
 
-    pub fn set_edge(&mut self, pos: &Pos, dir: &Dir) {
+    pub fn add_edge(&mut self, pos: &Pos, dir: &Dir) {
         self.edges[pos.y as usize][pos.x as usize][dir.val() as usize] = true;
     }
 
@@ -83,6 +99,14 @@ impl Grid {
             }
         }
         return None;
+    }
+
+    fn register_created_points(&mut self, a: &Pos, target: &Pos) {
+        self.point(&a)
+            .as_mut()
+            .unwrap()
+            .created_points
+            .push(target.clone());
     }
 
     pub fn is_valid(&self, pos: &Pos) -> bool {
