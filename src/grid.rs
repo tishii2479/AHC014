@@ -45,20 +45,20 @@ impl Grid {
         self.add_edge(b, &dir.rev());
     }
 
-    pub fn create_square(&mut self, new_pos: &Pos, diagonal: &Pos, connect: &[Pos; 2]) {
+    pub fn create_square(&mut self, square: &Square) {
         // 点を追加する
-        self.add_point(new_pos, Point::new(new_pos, true));
+        self.add_point(&square.new_pos, Point::new(&square.new_pos, true));
 
         // 辺を追加する
-        self.connect_edge(&connect[0], new_pos);
-        self.connect_edge(&connect[1], new_pos);
-        self.connect_edge(&connect[0], diagonal);
-        self.connect_edge(&connect[1], diagonal);
+        self.connect_edge(&square.connect[0], &square.new_pos);
+        self.connect_edge(&square.connect[1], &square.new_pos);
+        self.connect_edge(&square.connect[0], &square.diagonal);
+        self.connect_edge(&square.connect[1], &square.diagonal);
 
         // 使った点を登録する
-        self.register_created_points(&connect[0], &new_pos);
-        self.register_created_points(&connect[1], &new_pos);
-        self.register_created_points(&diagonal, &new_pos);
+        self.register_created_points(&square.connect[0], &square.new_pos);
+        self.register_created_points(&square.connect[1], &square.new_pos);
+        self.register_created_points(&square.diagonal, &square.new_pos);
     }
 
     pub fn add_point(&mut self, pos: &Pos, mut point: Point) {

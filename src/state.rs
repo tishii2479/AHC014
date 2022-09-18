@@ -5,7 +5,7 @@ use crate::grid::*; // ignore
 pub struct State {
     pub grid: Grid,
     pub points: Vec<Pos>,
-    pub squares: Vec<(Pos, Pos, Pos, Pos)>,
+    pub squares: Vec<Square>,
 
     pub score: i64,
 }
@@ -32,58 +32,47 @@ impl State {
 }
 
 impl State {
-    // TODO: use Square
-    pub fn perform_add(&mut self, new_pos: &Pos, diagonal: &Pos, connect: &[Pos; 2]) -> bool {
-        assert!(Pos::is_aligned(diagonal, &connect[0]));
-        assert!(Pos::is_aligned(diagonal, &connect[1]));
-        assert!(Pos::is_aligned(new_pos, &connect[0]));
-        assert!(Pos::is_aligned(new_pos, &connect[1]));
+    pub fn perform_add(&mut self, square: &Square) -> bool {
+        assert!(Pos::is_aligned(&square.diagonal, &square.connect[0]));
+        assert!(Pos::is_aligned(&square.diagonal, &square.connect[1]));
+        assert!(Pos::is_aligned(&square.new_pos, &square.connect[0]));
+        assert!(Pos::is_aligned(&square.new_pos, &square.connect[1]));
 
         // new_posに既に点がないか確認
-        if self.grid.has_point(&new_pos) {
+        if self.grid.has_point(&square.new_pos) {
             return false;
         }
 
         // 作ろうとしてる四角の辺に既に点、辺がないか確認する
-        if !self.grid.can_connect(&connect[0], new_pos)
-            || !self.grid.can_connect(&connect[1], new_pos)
-            || !self.grid.can_connect(&connect[0], diagonal)
-            || !self.grid.can_connect(&connect[1], diagonal)
+        if !self.grid.can_connect(&square.connect[0], &square.new_pos)
+            || !self.grid.can_connect(&square.connect[1], &square.new_pos)
+            || !self.grid.can_connect(&square.connect[0], &square.diagonal)
+            || !self.grid.can_connect(&square.connect[1], &square.diagonal)
         {
             return false;
         }
 
         // eprintln!(
         //     "Connected: {:?}, {:?}, {:?}, {:?}",
-        //     new_pos, &connect[0], diagonal, &connect[1]
+        //     new_pos, &square.connect[0], square.diagonal, &square.connect[1]
         // );
 
-        self.grid.create_square(&new_pos, &diagonal, &connect);
+        self.grid.create_square(&square);
 
-        self.squares.push((
-            new_pos.clone(),
-            connect[0].clone(),
-            diagonal.clone(),
-            connect[1].clone(),
-        ));
-        self.points.push(new_pos.clone());
-        self.score += self.weight(new_pos);
+        self.squares.push(square.clone());
+        self.points.push(square.new_pos.clone());
+        self.score += self.weight(&square.new_pos);
 
         return true;
     }
 
-    pub fn perform_delete(
-        &mut self,
-        created_pos: &Pos,
-        diagonal: &Pos,
-        connect: &[Pos; 2],
-    ) -> bool {
-        assert!(Pos::is_aligned(diagonal, &connect[0]));
-        assert!(Pos::is_aligned(diagonal, &connect[1]));
-        assert!(Pos::is_aligned(created_pos, &connect[0]));
-        assert!(Pos::is_aligned(created_pos, &connect[1]));
+    pub fn perform_delete(&mut self, square: &Square) -> bool {
+        assert!(Pos::is_aligned(&square.diagonal, &square.connect[0]));
+        assert!(Pos::is_aligned(&square.diagonal, &square.connect[1]));
+        assert!(Pos::is_aligned(&square.new_pos, &square.connect[0]));
+        assert!(Pos::is_aligned(&square.new_pos, &square.connect[1]));
 
-        assert!(self.grid.has_point(created_pos));
+        assert!(self.grid.has_point(&square.new_pos));
 
         false
     }
@@ -112,8 +101,16 @@ fn test_delete_point() {
 
     let mut state = State::new(n, p);
     let copied_state = state.clone();
-    state.perform_add(&new_pos, &diagonal, &connect);
-    state.perform_delete(&new_pos, &diagonal, &connect);
+    state.perform_add(&Square {
+        new_pos: new_pos.clone(),
+        diagonal: diagonal.clone(),
+        connect: connect.clone(),
+    });
+    state.perform_delete(&Square {
+        new_pos: new_pos.clone(),
+        diagonal: diagonal.clone(),
+        connect: connect.clone(),
+    });
     assert_eq!(copied_state, state);
 }
 
@@ -132,7 +129,11 @@ fn test_add_point() {
     ];
 
     let mut state = State::new(n, p);
-    assert!(state.perform_add(&new_pos, &diagonal, &connect));
+    assert!(state.perform_add(&Square {
+        new_pos: new_pos.clone(),
+        diagonal: diagonal.clone(),
+        connect: connect.clone()
+    }));
     assert!(state.grid.point(&new_pos).is_some());
 
     assert!(state.grid.has_edge(&Pos { x: 1, y: 2 }, &Dir::Left));

@@ -38,22 +38,8 @@ impl IState for State {
 
     fn perform_command(&mut self, command: &Command) -> bool {
         match command {
-            Command::Add {
-                square:
-                    Square {
-                        new_pos,
-                        diagonal,
-                        connect,
-                    },
-            } => self.perform_add(new_pos, diagonal, connect),
-            Command::Delete {
-                square:
-                    Square {
-                        new_pos: created_pos,
-                        diagonal,
-                        connect,
-                    },
-            } => self.perform_delete(created_pos, diagonal, connect),
+            Command::Add { square } => self.perform_add(square),
+            Command::Delete { square } => self.perform_delete(square),
         }
     }
 
@@ -149,10 +135,22 @@ impl ISolver for Solver {
 impl Solver {
     fn output(&self) {
         println!("{}", self.state.squares.len());
-        for (p1, p2, p3, p4) in &self.state.squares {
+        for Square {
+            new_pos,
+            diagonal,
+            connect,
+        } in &self.state.squares
+        {
             println!(
                 "{} {} {} {} {} {} {} {}",
-                p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y
+                new_pos.x,
+                new_pos.y,
+                connect[0].x,
+                connect[0].y,
+                diagonal.x,
+                diagonal.y,
+                connect[1].x,
+                connect[1].y
             );
         }
     }
