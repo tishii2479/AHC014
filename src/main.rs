@@ -46,10 +46,6 @@ impl State {
         self.grid.connect(&connect[0], diagonal);
         self.grid.connect(&connect[1], diagonal);
 
-        // nearest_pointsを付け替える
-        self.grid.recognize(&connect[0], new_pos);
-        self.grid.recognize(&connect[1], new_pos);
-
         // eprintln!(
         //     "Connected: {:?}, {:?}, {:?}, {:?}",
         //     new_pos, &connect[0], diagonal, &connect[1]
@@ -129,16 +125,15 @@ fn test_add_point() {
 
 fn main() {
     time::start_clock();
-
     input! {
         n: usize,
         m: usize,
-        p: [Pos; m],
+        p: [Pos; m]
     }
 
     let mut state = State::new(n, p);
 
-    while time::elapsed_seconds() < 2. {
+    while time::elapsed_seconds() < 1. {
         let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
         let point = state.grid.point(&selected_p).as_ref().unwrap().clone();
 
@@ -154,10 +149,10 @@ fn main() {
             ) {
                 let new_pos = pos_next + &(pos_prev - &selected_p);
 
-                eprintln!(
-                    "{:?}, {:?}, {:?}, {:?}",
-                    new_pos, selected_p, pos_prev, pos_next
-                );
+                // eprintln!(
+                //     "{:?}, {:?}, {:?}, {:?}",
+                //     new_pos, selected_p, pos_prev, pos_next
+                // );
 
                 if state.grid.has_point(&new_pos) {
                     continue;

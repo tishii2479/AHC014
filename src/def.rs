@@ -113,6 +113,7 @@ impl Pos {
 
         let dir = Pos::get_dir(from, to);
 
+        // is_alignedなら必ず見つかる（はず）
         loop {
             cur += &dir.to_pos();
             if &cur == to {
@@ -221,6 +222,7 @@ pub struct State {
 }
 
 pub struct Grid {
+    pub size: usize,
     pub points: Vec<Vec<Option<Point>>>,
     pub edges: Vec<Vec<Vec<bool>>>,
 }
@@ -263,7 +265,16 @@ impl Grid {
         self.set_edge(b, &dir.rev());
     }
 
-    pub fn set_point(&mut self, pos: &Pos, point: Point) {
+    pub fn set_point(&mut self, pos: &Pos, mut point: Point) {
+        assert!(!self.has_point(&pos));
+        for i in 0..DIR_MAX {
+            let dir = Dir::from_i64(i as i64);
+            if let Some(nearest_pos) = self.nearest_point_pos(&pos, &dir) {
+                self.point(&nearest_pos).as_mut().unwrap().nearest_points
+                    [dir.rev().val() as usize] = Some(pos.clone());
+                point.nearest_points[dir.val() as usize] = Some(nearest_pos.clone());
+            }
+        }
         self.points[pos.y as usize][pos.x as usize] = Some(point);
     }
 
@@ -313,6 +324,26 @@ impl Grid {
             }
         }
     }
+
+    pub fn nearest_point_pos(&self, from: &Pos, dir: &Dir) -> Option<Pos> {
+        let mut cur = from.clone();
+
+        // 最大でもself.size回loopを回せばいい
+        for _ in 0..self.size {
+            cur += &dir.to_pos();
+            if !self.is_valid(&cur) {
+                break;
+            }
+            if self.has_point(&cur) {
+                return Some(cur);
+            }
+        }
+        return None;
+    }
+
+    pub fn is_valid(&self, pos: &Pos) -> bool {
+        pos.x >= 0 && pos.y >= 0 && pos.x < self.size as i64 && pos.y < self.size as i64
+    }
 }
 
 pub enum Command {
@@ -341,6 +372,7 @@ impl State {
 
         let mut state = State {
             grid: Grid {
+                size: n,
                 points: data,
                 edges: vec![vec![vec![false; DIR_MAX]; n]; n],
             },
