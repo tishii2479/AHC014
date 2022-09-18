@@ -59,7 +59,11 @@ impl Grid {
 
     pub fn create_square(&mut self, square: &Square) {
         // 点を追加する
-        self.add_point(&square.new_pos, Point::new(&square.new_pos, true));
+        self.add_point(
+            &square.new_pos,
+            Point::new(&square.new_pos, true),
+            Some(square.clone()),
+        );
 
         // 辺を追加する
         self.connect(&square.connect[0], &square.new_pos);
@@ -109,7 +113,7 @@ impl Grid {
         self.points[pos.y as usize][pos.x as usize] = None;
     }
 
-    pub fn add_point(&mut self, pos: &Pos, mut point: Point) {
+    pub fn add_point(&mut self, pos: &Pos, mut point: Point, square: Option<Square>) {
         assert!(!self.has_point(&pos));
         for i in 0..DIR_MAX {
             let dir = Dir::from_i64(i as i64);
@@ -119,6 +123,7 @@ impl Grid {
                 point.nearest_points[dir.val() as usize] = Some(nearest_pos.clone());
             }
         }
+        point.added_info = square.clone();
         self.points[pos.y as usize][pos.x as usize] = Some(point);
     }
 

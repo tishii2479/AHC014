@@ -22,7 +22,7 @@ impl State {
             score: Score { base: 0 },
         };
         for pos in p.iter() {
-            state.grid.add_point(pos, Point::new(&pos, false));
+            state.grid.add_point(pos, Point::new(&pos, false), None);
             state.points.push(pos.clone());
             state.score.base += state.weight(&pos);
         }
@@ -73,7 +73,21 @@ impl State {
 
         assert!(self.grid.has_point(&square.new_pos));
 
-        // TODO: delete square recursively
+        // new_posの点を使って作られた四角を再帰的に消す
+        let point = self.grid.point(&square.new_pos).as_ref().unwrap().clone();
+        for created_point in &point.created_points {
+            assert!(self.grid.has_point(created_point));
+            let created_square = self
+                .grid
+                .point(created_point)
+                .as_ref()
+                .unwrap()
+                .added_info
+                .as_ref()
+                .unwrap()
+                .clone();
+            self.perform_delete(&created_square);
+        }
 
         self.grid.delete_square(&square);
 
@@ -105,16 +119,17 @@ impl State {
 fn test_delete_point() {
     let diagonal = Pos { x: 0, y: 0 };
     let connect: [Pos; 2] = [Pos { x: 2, y: 0 }, Pos { x: 0, y: 2 }];
-    let other = Pos { x: 2, y: 4 };
+    let connect2: [Pos; 2] = [Pos { x: 2, y: 4 }, Pos { x: 4, y: 2 }];
     let new_pos = Pos { x: 2, y: 2 };
+    let new_pos2 = Pos { x: 4, y: 4 };
     let n: usize = 5;
     let p = vec![
         diagonal.clone(),
         connect[0].clone(),
         connect[1].clone(),
-        other.clone(),
+        connect2[0].clone(),
+        connect2[1].clone(),
     ];
-
     let mut state = State::new(n, p);
     let copied_state = state.clone();
     let square = Square {
@@ -123,6 +138,12 @@ fn test_delete_point() {
         connect: connect.clone(),
     };
     state.perform_add(&square);
+    let square2 = Square {
+        new_pos: new_pos2,
+        diagonal: new_pos.clone(),
+        connect: connect2,
+    };
+    state.perform_add(&square2);
     state.perform_delete(&square);
     assert_eq!(copied_state, state);
 }
