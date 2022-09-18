@@ -29,6 +29,7 @@ def execute_case(seed):
 def main():
     scores = []
     count = 0
+    subprocess.run("cargo build --release", shell=True)
     with multiprocessing.Pool(max(1, multiprocessing.cpu_count() - 2)) as pool:
         for seed, score in pool.imap_unordered(execute_case, range(CASE)):
             print(count % 10, end="", flush=True)

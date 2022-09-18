@@ -4,7 +4,7 @@ if __name__ == "__main__":
     src = []
     with open(main_file, "r") as f:
         for line in f:
-            if len(line) >= 10 and line[-10:] == "// expand\n":
+            if len(line) >= 10 and line[-10:] == "// expand\n" and line[:3] == "mod":
                 lib_name = line.split(" ")[1][:-1]
                 src.append(f"pub mod {lib_name} {{\n")
                 with open(f"src/{lib_name}.rs", "r") as f:

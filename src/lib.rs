@@ -26,10 +26,15 @@ pub mod rnd {
 }
 
 pub mod time {
+    static mut START: f64 = -1.;
+    #[allow(unused)]
+    pub fn start_clock() {
+        let _ = elapsed_seconds();
+    }
+
     #[allow(unused)]
     #[inline]
     pub fn elapsed_seconds() -> f64 {
-        static mut START: f64 = -1.;
         let t = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
