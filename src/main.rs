@@ -149,11 +149,9 @@ fn main() {
             ) {
                 let new_pos = pos_next + &(pos_prev - &selected_p);
 
-                // eprintln!(
-                //     "{:?}, {:?}, {:?}, {:?}",
-                //     new_pos, selected_p, pos_prev, pos_next
-                // );
-
+                if !state.grid.is_valid(&new_pos) {
+                    continue;
+                }
                 if state.grid.has_point(&new_pos) {
                     continue;
                 }
