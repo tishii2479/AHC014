@@ -61,6 +61,7 @@ impl State {
             diagonal.clone(),
             connect[1].clone(),
         ));
+        self.points.push(new_pos.clone());
 
         return true;
     }
@@ -90,7 +91,7 @@ fn test_add_point() {
     match state.grid.point(&connect[0]) {
         Some(point_other) => {
             assert_eq!(
-                point_other.nearest_points[Dir::Down.val() as usize],
+                point_other.nearest_points[Dir::Up.val() as usize],
                 Some(Pos { x: 2, y: 2 })
             );
         }
@@ -104,11 +105,11 @@ fn test_add_point() {
                 Some(Pos { x: 0, y: 2 })
             );
             assert_eq!(
-                point_new_pos.nearest_points[Dir::Down.val() as usize],
+                point_new_pos.nearest_points[Dir::Up.val() as usize],
                 Some(Pos { x: 2, y: 4 })
             );
             assert_eq!(
-                point_new_pos.nearest_points[Dir::Up.val() as usize],
+                point_new_pos.nearest_points[Dir::Down.val() as usize],
                 Some(Pos { x: 2, y: 0 })
             );
         }
@@ -118,7 +119,7 @@ fn test_add_point() {
     match state.grid.point(&other) {
         Some(point_other) => {
             assert_eq!(
-                point_other.nearest_points[Dir::Up.val() as usize],
+                point_other.nearest_points[Dir::Down.val() as usize],
                 Some(Pos { x: 2, y: 2 })
             );
         }
@@ -137,7 +138,7 @@ fn main() {
 
     let mut state = State::new(n, p);
 
-    while time::elapsed_seconds() < 1. {
+    while time::elapsed_seconds() < 2. {
         let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
         let point = state.grid.point(&selected_p).as_ref().unwrap().clone();
 
@@ -153,6 +154,11 @@ fn main() {
             ) {
                 let new_pos = pos_next + &(pos_prev - &selected_p);
 
+                eprintln!(
+                    "{:?}, {:?}, {:?}, {:?}",
+                    new_pos, selected_p, pos_prev, pos_next
+                );
+
                 if state.grid.has_point(&new_pos) {
                     continue;
                 }
@@ -160,11 +166,13 @@ fn main() {
                 let connect: [Pos; 2] = [pos_prev.clone(), pos_next.clone()];
                 let add = Command::Add {
                     new_pos,
-                    diagonal: selected_p,
+                    diagonal: selected_p.clone(),
                     connect,
                 };
-                state.perform_command(&add);
-                break;
+
+                if state.perform_command(&add) {
+                    break;
+                }
             }
         }
     }

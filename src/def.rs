@@ -41,14 +41,14 @@ impl Dir {
 
     pub fn to_pos(self) -> Pos {
         match self {
-            Dir::Up => Pos { x: 0, y: -1 },
-            Dir::UpRight => Pos { x: 1, y: -1 },
+            Dir::Up => Pos { x: 0, y: 1 },
+            Dir::UpRight => Pos { x: 1, y: 1 },
             Dir::Right => Pos { x: 1, y: 0 },
-            Dir::DownRight => Pos { x: 1, y: 1 },
-            Dir::Down => Pos { x: 0, y: 1 },
-            Dir::DownLeft => Pos { x: -1, y: 1 },
+            Dir::DownRight => Pos { x: 1, y: -1 },
+            Dir::Down => Pos { x: 0, y: -1 },
+            Dir::DownLeft => Pos { x: -1, y: -1 },
             Dir::Left => Pos { x: -1, y: 0 },
-            Dir::UpLeft => Pos { x: -1, y: -1 },
+            Dir::UpLeft => Pos { x: -1, y: 1 },
         }
     }
 
@@ -86,17 +86,17 @@ impl Pos {
         assert!(Pos::is_aligned(from, to));
 
         let delta = to - from;
-        if delta.y < 0 && delta.x == 0 {
+        if delta.y > 0 && delta.x == 0 {
             return Dir::Up;
-        } else if delta.y < 0 && delta.x > 0 {
+        } else if delta.y > 0 && delta.x > 0 {
             return Dir::UpRight;
         } else if delta.y == 0 && delta.x > 0 {
             return Dir::Right;
-        } else if delta.y > 0 && delta.x > 0 {
+        } else if delta.y < 0 && delta.x > 0 {
             return Dir::DownRight;
-        } else if delta.y > 0 && delta.x == 0 {
+        } else if delta.y < 0 && delta.x == 0 {
             return Dir::Down;
-        } else if delta.y > 0 && delta.x < 0 {
+        } else if delta.y < 0 && delta.x < 0 {
             return Dir::DownLeft;
         } else if delta.y == 0 && delta.x < 0 {
             return Dir::Left;
@@ -151,14 +151,14 @@ fn test_between() {
 #[test]
 fn test_get_dir() {
     let c = Pos { x: 5, y: 5 };
-    assert_eq!(Pos::get_dir(&c, &Pos { x: 5, y: 3 }), Dir::Up);
-    assert_eq!(Pos::get_dir(&c, &Pos { x: 7, y: 3 }), Dir::UpRight);
+    assert_eq!(Pos::get_dir(&c, &Pos { x: 5, y: 7 }), Dir::Up);
+    assert_eq!(Pos::get_dir(&c, &Pos { x: 7, y: 7 }), Dir::UpRight);
     assert_eq!(Pos::get_dir(&c, &Pos { x: 7, y: 5 }), Dir::Right);
-    assert_eq!(Pos::get_dir(&c, &Pos { x: 7, y: 7 }), Dir::DownRight);
-    assert_eq!(Pos::get_dir(&c, &Pos { x: 5, y: 7 }), Dir::Down);
-    assert_eq!(Pos::get_dir(&c, &Pos { x: 3, y: 7 }), Dir::DownLeft);
+    assert_eq!(Pos::get_dir(&c, &Pos { x: 7, y: 3 }), Dir::DownRight);
+    assert_eq!(Pos::get_dir(&c, &Pos { x: 5, y: 3 }), Dir::Down);
+    assert_eq!(Pos::get_dir(&c, &Pos { x: 3, y: 3 }), Dir::DownLeft);
     assert_eq!(Pos::get_dir(&c, &Pos { x: 3, y: 5 }), Dir::Left);
-    assert_eq!(Pos::get_dir(&c, &Pos { x: 3, y: 3 }), Dir::UpLeft);
+    assert_eq!(Pos::get_dir(&c, &Pos { x: 3, y: 7 }), Dir::UpLeft);
 }
 
 impl ops::AddAssign<&Pos> for Pos {
@@ -243,6 +243,9 @@ impl Grid {
             if self.has_edge(&p, &dir) || self.has_edge(&p, &dir.rev()) {
                 return false;
             }
+        }
+        if self.has_edge(b, &dir.rev()) {
+            return false;
         }
         return true;
     }
