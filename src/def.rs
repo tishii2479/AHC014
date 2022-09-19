@@ -33,7 +33,10 @@ impl Square {
             id: unsafe { SQUARE_COUNTER },
             new_pos,
             diagonal,
-            connect,
+            connect: [
+                std::cmp::min(connect[0], connect[1]),
+                std::cmp::max(connect[0], connect[1]),
+            ],
         }
     }
 }
@@ -128,7 +131,7 @@ impl Dir {
 }
 
 #[derive_readable]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Pos {
     pub x: i64,
     pub y: i64,

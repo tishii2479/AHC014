@@ -156,11 +156,27 @@ impl Neighborhood {
 
     fn perform_add(&mut self, state: &mut State) -> Vec<Command> {
         let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
-        let point = state.grid.point(&selected_p).as_ref().unwrap().clone();
+        self.attempt_add(state, &selected_p, None)
+    }
+
+    fn attempt_add(
+        &mut self,
+        state: &mut State,
+        pos: &Pos,
+        ignore_dir: Option<&Dir>,
+    ) -> Vec<Command> {
+        assert!(state.grid.has_point(&pos));
+        let point = state.grid.point(&pos).as_ref().unwrap().clone();
 
         // TODO: randomize
         for i in 0..DIR_MAX {
             let diagonal_dir = Dir::from_i64(i as i64);
+            if let Some(ignore_dir) = ignore_dir {
+                if ignore_dir == &diagonal_dir {
+                    continue;
+                }
+            }
+
             let dir_next = diagonal_dir.next();
             let dir_prev = diagonal_dir.prev();
 
@@ -168,7 +184,7 @@ impl Neighborhood {
                 &point.nearest_points[dir_prev.val() as usize],
                 &point.nearest_points[dir_next.val() as usize],
             ) {
-                let new_pos = pos_next + &(pos_prev - &selected_p);
+                let new_pos = pos_next + &(pos_prev - &pos);
 
                 if !state.grid.is_valid(&new_pos) {
                     continue;
@@ -179,7 +195,7 @@ impl Neighborhood {
 
                 let connect: [Pos; 2] = [pos_prev.clone(), pos_next.clone()];
                 let performed_commands = state.perform_command(&Command::Add {
-                    square: Square::new(new_pos, selected_p.clone(), connect),
+                    square: Square::new(new_pos, pos.clone(), connect),
                 });
                 if performed_commands.len() > 0 {
                     return performed_commands;
@@ -191,7 +207,12 @@ impl Neighborhood {
 
     fn perform_delete(&mut self, state: &mut State) -> Vec<Command> {
         let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
-        let point = state.grid.point(&selected_p).as_ref().unwrap().clone();
+        self.attemp_delete(state, &selected_p)
+    }
+
+    fn attemp_delete(&mut self, state: &mut State, pos: &Pos) -> Vec<Command> {
+        assert!(state.grid.has_point(&pos));
+        let point = state.grid.point(&pos).as_ref().unwrap().clone();
         if let Some(added_info) = point.added_info {
             return state.perform_command(&Command::Delete { square: added_info });
         }
@@ -201,40 +222,34 @@ impl Neighborhood {
     fn perform_change_square(&mut self, state: &mut State) -> Vec<Command> {
         // 四角を作っている点を探す
         let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
-        let point = state.grid.point(&selected_p).as_ref().unwrap().clone();
+        self.attempt_change_square(state, &selected_p)
+    }
+
+    fn attempt_change_square(&mut self, state: &mut State, pos: &Pos) -> Vec<Command> {
+        assert!(state.grid.has_point(&pos));
+        let point = state.grid.point(&pos).as_ref().unwrap().clone();
+        let mut performed_commands: Vec<Command> = vec![];
 
         // TODO: Randomize
         for i in 0..DIR_MAX {
             let front = Dir::from_i64(i as i64);
             let left = front.prev().prev();
-            let right = front.next().next();
-
-            if state.grid.has_edge(&selected_p, &left)
-                && state.grid.has_edge(&selected_p, &front)
-                && !state.grid.has_edge(&selected_p, &right)
-                && point.nearest_points[right.val() as usize].is_some()
-            {}
-
-            // if let (Some(pos_front), Some(pos_left), Some(pos_right)) = (
-            //     &point.nearest_points[front.val() as usize],
-            //     &point.nearest_points[left.val() as usize],
-            //     &point.nearest_points[right.val() as usize],
-            // ) {
-            // if let Some(point_right_diagonal) = self.state.grid.point(&pos_right_diagonal) {
-            //     if let Some(added_info) = &point_right_diagonal.added_info {
-            //         if added_info.diagonal == selected_p
-            //             && ((&added_info.connect[0] == pos_right
-            //                 && &added_info.connect[1] == pos_front)
-            //                 || (&added_info.connect[1] == pos_right
-            //                     && &added_info.connect[0] == pos_front))
-            //         {
-            //         }
-            //     }
-            // }
-            // }
+            if state.grid.has_edge(&pos, &left) && state.grid.has_edge(&pos, &front) {
+                let left_pos = point.nearest_points[left.val() as usize].as_ref().unwrap();
+                let front_pos = point.nearest_points[front.val() as usize].as_ref().unwrap();
+                let left_front_pos = &(&(left_pos + front_pos) - pos);
+                if !state.grid.is_valid(left_front_pos) {
+                    continue;
+                }
+                if let Some(left_front_point) = state.grid.point(left_front_pos).clone() {
+                    let added_square = left_front_point.added_info.as_ref().unwrap();
+                    state.perform_delete(&added_square, &mut performed_commands);
+                    performed_commands.append(&mut self.attempt_add(state, &pos, Some(&front)));
+                    return performed_commands;
+                }
+            }
         }
 
-        panic!("Not implemented");
         return vec![];
     }
 }

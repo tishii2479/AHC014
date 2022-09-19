@@ -229,9 +229,30 @@ fn test_change_square() {
     ];
 
     let mut state = State::new(n, p);
-    let square = Square::new(old_pos.clone(), selected_p.clone(), connect.clone());
+    let mut other_state = state.clone();
+    state.perform_command(&Command::Add {
+        square: Square::new(old_pos.clone(), selected_p.clone(), connect),
+    });
+    other_state.perform_command(&Command::Add {
+        square: Square::new(new_pos.clone(), selected_p.clone(), connect2),
+    });
+
+    let copied_state = state.clone();
     let mut neighborhood = Neighborhood::ChangeSquare;
-    neighborhood.perform_change_square(&mut state);
+    let performed_commands = neighborhood.attempt_change_square(&mut state, &selected_p);
+
+    assert_eq!(performed_commands.len(), 2);
+    assert!(!state.grid.has_point(&old_pos));
+    assert!(state.grid.has_point(&new_pos));
+
+    // Squareのidは異なってしまうので、それ以外で比較する
+    assert_eq!(state.points, other_state.points);
+    assert_eq!(state.score, other_state.score);
+
+    for command in performed_commands.iter().rev() {
+        state.reverse_command(command);
+    }
+    assert_eq!(state, copied_state);
 }
 
 #[test]
