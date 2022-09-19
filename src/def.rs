@@ -44,10 +44,20 @@ pub enum Command {
     Delete { square: Square },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Neighborhood {
-    Add,
+    Add = 0,
     Delete,
+}
+
+impl Neighborhood {
+    pub fn from_i64(v: i64) -> Neighborhood {
+        match v {
+            0 => Neighborhood::Add,
+            1 => Neighborhood::Delete,
+            _ => panic!("Dir value {} is invalid.", v),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]

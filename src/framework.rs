@@ -8,6 +8,7 @@ pub trait IState {
 
 pub trait INeighborhoodSelector {
     fn select(&self) -> Neighborhood;
+    fn step(&mut self, neighborhood: &Neighborhood, adopted: bool);
 }
 
 pub trait IOptimizer {

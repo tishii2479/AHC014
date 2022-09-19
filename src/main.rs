@@ -10,7 +10,30 @@ use lib::*;
 use proconio::input;
 use state::*;
 
-struct NeighborhoodSelector;
+struct NeighborhoodSelector {
+    total_cnt: Vec<i64>,
+    adopted_cnt: Vec<i64>,
+}
+
+impl NeighborhoodSelector {
+    fn new(neighborhood_count: usize) -> NeighborhoodSelector {
+        NeighborhoodSelector {
+            total_cnt: vec![0; neighborhood_count],
+            adopted_cnt: vec![0; neighborhood_count],
+        }
+    }
+
+    fn output_statistics(&self) {
+        for i in 0..self.total_cnt.len() {
+            eprintln!(
+                "{:?}: (total_cnt: {}, adopted_cnt: {})",
+                Neighborhood::from_i64(i as i64),
+                self.total_cnt[i],
+                self.adopted_cnt[i]
+            );
+        }
+    }
+}
 
 impl INeighborhoodSelector for NeighborhoodSelector {
     fn select(&self) -> Neighborhood {
@@ -18,6 +41,13 @@ impl INeighborhoodSelector for NeighborhoodSelector {
             return Neighborhood::Delete;
         }
         return Neighborhood::Add;
+    }
+
+    fn step(&mut self, neighborhood: &Neighborhood, adopted: bool) {
+        self.total_cnt[*neighborhood as usize] += 1;
+        if adopted {
+            self.adopted_cnt[*neighborhood as usize] += 1;
+        }
     }
 }
 
@@ -90,6 +120,9 @@ impl ISolver for Solver {
                     self.state.reverse_command(command);
                 }
             }
+
+            self.neighborhood_selector
+                .step(&neighborhood, adopt_new_state);
             loop_count += 1;
         }
         eprintln!("loop_count: {}", loop_count);
@@ -171,6 +204,15 @@ impl Solver {
             );
         }
     }
+
+    fn output_statistics(&self, n: usize, m: usize) {
+        eprintln!("state_score: {}", self.state.get_score());
+        eprintln!(
+            "real_score: {}",
+            calc_real_score(n, m, self.state.get_score() as i64)
+        );
+        self.neighborhood_selector.output_statistics();
+    }
 }
 
 fn main() {
@@ -184,11 +226,12 @@ fn main() {
     }
 
     let state = State::new(n, p);
+    const NEIGHBORHOOD_COUNT: usize = 2;
     let mut solver = Solver {
         state,
-        neighborhood_selector: NeighborhoodSelector {},
+        neighborhood_selector: NeighborhoodSelector::new(NEIGHBORHOOD_COUNT),
         optimizer: Optimizer {
-            start_temp: 10.,
+            start_temp: 500.,
             end_temp: 0.,
         },
     };
@@ -197,11 +240,7 @@ fn main() {
     solver.output();
 
     if cfg!(debug_assertions) {
-        eprintln!("state_score: {}", solver.state.get_score());
-        eprintln!(
-            "real_score: {}",
-            calc_real_score(n, m, solver.state.get_score() as i64)
-        );
+        solver.output_statistics(n, m);
         eprintln!("run_time: {}", time::elapsed_seconds());
     }
 }

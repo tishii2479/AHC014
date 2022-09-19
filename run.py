@@ -54,9 +54,9 @@ def main():
     print(f"ave: {ave}")
     print(f"min: {scores[0]}")
 
-    div = 20
+    div = 30
     cnt = [0] * div
-    base = 350000
+    base = 500000
     step = 50000
     for s in scores:
         cnt[(s[0] - base) // step] += 1
