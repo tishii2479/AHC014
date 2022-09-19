@@ -68,13 +68,6 @@ impl State {
         self.score.base += self.weight(&square.new_pos);
         self.score.edge_length += square.size();
 
-        if i64::abs((&square.connect[0] - &square.new_pos).x) > 0
-            && i64::abs((&square.connect[1] - &square.new_pos).y) > 0
-            && square.size() > 2
-        {
-            self.score.temporary = -100;
-        }
-
         vec![Command::Add {
             square: square.clone(),
         }]
