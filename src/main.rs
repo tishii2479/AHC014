@@ -4,6 +4,8 @@ mod grid; // expand
 mod lib; // expand
 mod state; // expand
 
+use std::{fs, io::Write};
+
 use def::*;
 use framework::*;
 use lib::*;
@@ -96,6 +98,7 @@ struct Solver {
     state: State,
     neighborhood_selector: NeighborhoodSelector,
     optimizer: Optimizer,
+    score_history: Vec<f64>,
 }
 
 impl ISolver for Solver {
@@ -124,9 +127,16 @@ impl ISolver for Solver {
 
             self.neighborhood_selector
                 .step(&neighborhood, adopt_new_state);
-            loop_count += 1;
+
+            if cfg!(debug_assertions) {
+                self.score_history.push(self.state.score.base as f64);
+                loop_count += 1;
+            }
         }
-        eprintln!("loop_count: {}", loop_count);
+
+        if cfg!(debug_assertions) {
+            eprintln!("loop_count: {}", loop_count);
+        }
     }
 
     fn perform_neighborhood(&mut self, neighborhood: Neighborhood) -> Vec<Command> {
@@ -219,6 +229,13 @@ impl Solver {
             calc_real_score(n, m, self.state.get_score() as i64)
         );
         self.neighborhood_selector.output_statistics();
+
+        // スコア遷移の書き出し
+        let mut file = fs::File::create("tools/out/score_log.txt").unwrap();
+        for score in &self.score_history {
+            let score = calc_real_score(n, m, *score as i64);
+            file.write((score.to_string() + "\n").as_bytes()).unwrap();
+        }
     }
 }
 
@@ -241,14 +258,16 @@ fn main() {
             start_temp: 500.,
             end_temp: 0.,
         },
+        score_history: vec![],
     };
 
     solver.solve(TIME_LIMIT);
     solver.output();
 
+    eprintln!("run_time: {}", time::elapsed_seconds());
+
     if cfg!(debug_assertions) {
         solver.output_statistics(n, m);
-        eprintln!("run_time: {}", time::elapsed_seconds());
     }
 }
 

@@ -3,7 +3,7 @@ import pipes
 import subprocess
 
 CASE = 100
-TL = 5.0
+TL = 6.0
 
 
 def execute_case(seed):
