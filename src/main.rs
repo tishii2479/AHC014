@@ -113,7 +113,8 @@ impl ISolver for Solver {
 
             let adopt_new_state = self
                 .optimizer
-                .should_adopt_new_state(new_score - current_score, progress);
+                .should_adopt_new_state(new_score - current_score, progress)
+                && performed_commands.len() > 0;
 
             if !adopt_new_state {
                 for command in performed_commands.iter().rev() {
@@ -129,54 +130,60 @@ impl ISolver for Solver {
     }
 
     fn perform_neighborhood(&mut self, neighborhood: Neighborhood) -> Vec<Command> {
-        let mut performed_commands: Vec<Command> = vec![];
         match neighborhood {
-            Neighborhood::Add => {
-                let selected_p =
-                    self.state.points[rnd::gen_range(0, self.state.points.len()) as usize].clone();
-                let point = self.state.grid.point(&selected_p).as_ref().unwrap().clone();
+            Neighborhood::Add => self.perform_add(),
+            Neighborhood::Delete => self.perform_delete(),
+        }
+    }
+}
 
-                // TODO: randomize
-                for i in 0..DIR_MAX {
-                    let diagonal_dir = Dir::from_i64(i as i64);
-                    let dir_next = diagonal_dir.next();
-                    let dir_prev = diagonal_dir.prev();
+impl Solver {
+    fn perform_add(&mut self) -> Vec<Command> {
+        let selected_p =
+            self.state.points[rnd::gen_range(0, self.state.points.len()) as usize].clone();
+        let point = self.state.grid.point(&selected_p).as_ref().unwrap().clone();
 
-                    if let (Some(pos_prev), Some(pos_next)) = (
-                        &point.nearest_points[dir_prev.val() as usize],
-                        &point.nearest_points[dir_next.val() as usize],
-                    ) {
-                        let new_pos = pos_next + &(pos_prev - &selected_p);
+        // TODO: randomize
+        for i in 0..DIR_MAX {
+            let diagonal_dir = Dir::from_i64(i as i64);
+            let dir_next = diagonal_dir.next();
+            let dir_prev = diagonal_dir.prev();
 
-                        if !self.state.grid.is_valid(&new_pos) {
-                            continue;
-                        }
-                        if self.state.grid.has_point(&new_pos) {
-                            continue;
-                        }
+            if let (Some(pos_prev), Some(pos_next)) = (
+                &point.nearest_points[dir_prev.val() as usize],
+                &point.nearest_points[dir_next.val() as usize],
+            ) {
+                let new_pos = pos_next + &(pos_prev - &selected_p);
 
-                        let connect: [Pos; 2] = [pos_prev.clone(), pos_next.clone()];
-                        performed_commands = self.state.perform_command(&Command::Add {
-                            square: Square::new(new_pos, selected_p.clone(), connect),
-                        });
-                        if performed_commands.len() > 0 {
-                            break;
-                        }
-                    }
+                if !self.state.grid.is_valid(&new_pos) {
+                    continue;
                 }
-            }
-            Neighborhood::Delete => {
-                let selected_p =
-                    self.state.points[rnd::gen_range(0, self.state.points.len()) as usize].clone();
-                let point = self.state.grid.point(&selected_p).as_ref().unwrap().clone();
-                if let Some(added_info) = point.added_info {
-                    performed_commands = self
-                        .state
-                        .perform_command(&Command::Delete { square: added_info });
+                if self.state.grid.has_point(&new_pos) {
+                    continue;
+                }
+
+                let connect: [Pos; 2] = [pos_prev.clone(), pos_next.clone()];
+                let performed_commands = self.state.perform_command(&Command::Add {
+                    square: Square::new(new_pos, selected_p.clone(), connect),
+                });
+                if performed_commands.len() > 0 {
+                    return performed_commands;
                 }
             }
         }
-        return performed_commands;
+        return vec![];
+    }
+
+    fn perform_delete(&mut self) -> Vec<Command> {
+        let selected_p =
+            self.state.points[rnd::gen_range(0, self.state.points.len()) as usize].clone();
+        let point = self.state.grid.point(&selected_p).as_ref().unwrap().clone();
+        if let Some(added_info) = point.added_info {
+            return self
+                .state
+                .perform_command(&Command::Delete { square: added_info });
+        }
+        return vec![];
     }
 }
 
