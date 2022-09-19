@@ -1,4 +1,5 @@
 const TIME_LIMIT: f64 = 4.95;
+const VISUALIZE_ANNEALING: bool = true;
 
 mod def; // expand
 mod framework; // expand
@@ -130,6 +131,8 @@ impl ISolver for Solver {
                 for command in performed_commands.iter().rev() {
                     self.state.reverse_command(command);
                 }
+            } else if VISUALIZE_ANNEALING && rnd::nextf() < 0.05 {
+                self.output_step();
             }
 
             self.neighborhood_selector
@@ -275,8 +278,24 @@ impl Neighborhood {
 }
 
 impl Solver {
+    fn output_step(&mut self) {
+        static mut COUNTER: i64 = 0;
+        let out = self.format_output();
+        unsafe {
+            let file_name = format!("out/{:0width$}.txt", COUNTER, width = 5);
+            COUNTER += 1;
+            std::fs::write(file_name, &out).unwrap();
+        }
+    }
+
     fn output(&mut self) {
-        println!("{}", self.state.squares.len());
+        let out = self.format_output();
+        println!("{}", out);
+    }
+
+    fn format_output(&mut self) -> String {
+        let mut ret = String::from("");
+        ret += &format!("{}\n", self.state.squares.len());
         self.state.squares.sort_by(|a, b| a.id.cmp(&b.id));
         for Square {
             id: _,
@@ -285,8 +304,8 @@ impl Solver {
             connect,
         } in &self.state.squares
         {
-            println!(
-                "{} {} {} {} {} {} {} {}",
+            ret += &format!(
+                "{} {} {} {} {} {} {} {}\n",
                 new_pos.x,
                 new_pos.y,
                 connect[0].x,
@@ -297,6 +316,7 @@ impl Solver {
                 connect[1].y
             );
         }
+        ret
     }
 
     fn output_statistics(&self, n: usize, m: usize) {

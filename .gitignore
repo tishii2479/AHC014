@@ -1,4 +1,4 @@
 /target
 .vscode/
 tools/
-vis.html
+out/
