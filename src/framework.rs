@@ -1,7 +1,7 @@
 use crate::def::*; // ignore
 
 pub trait IState {
-    fn get_score(&self) -> f64;
+    fn get_score(&self, progress: f64) -> f64;
     fn perform_command(&mut self, command: &Command) -> Vec<Command>;
     fn reverse_command(&mut self, command: &Command);
 }

@@ -21,7 +21,7 @@ impl State {
             },
             points: p.clone(),
             squares: vec![],
-            score: Score { base: 0 },
+            score: Score::new(),
         };
         for pos in p.iter() {
             state.grid.add_point(pos, Point::new(&pos, false), None);
@@ -64,6 +64,7 @@ impl State {
         self.squares.push(square.clone());
         self.points.push(square.new_pos.clone());
         self.score.base += self.weight(&square.new_pos);
+        self.score.edge_length += square.size();
 
         vec![Command::Add {
             square: square.clone(),
@@ -112,6 +113,7 @@ impl State {
                 .unwrap(),
         );
         self.score.base -= self.weight(&square.new_pos);
+        self.score.edge_length -= square.size();
         performed_commands.push(Command::Delete {
             square: square.clone(),
         });
@@ -230,13 +232,18 @@ fn test_change_square() {
 
     let mut state = State::new(n, p);
     let mut other_state = state.clone();
-    state.perform_command(&Command::Add {
-        square: Square::new(old_pos.clone(), selected_p.clone(), connect),
-    });
+    unsafe {
+        SQUARE_COUNTER = 1;
+    }
     other_state.perform_command(&Command::Add {
         square: Square::new(new_pos.clone(), selected_p.clone(), connect2),
     });
-
+    unsafe {
+        SQUARE_COUNTER = 0;
+    }
+    state.perform_command(&Command::Add {
+        square: Square::new(old_pos.clone(), selected_p.clone(), connect),
+    });
     let copied_state = state.clone();
     let mut neighborhood = Neighborhood::ChangeSquare;
     let performed_commands = neighborhood.attempt_change_square(&mut state, &selected_p);

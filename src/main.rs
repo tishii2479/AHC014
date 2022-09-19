@@ -71,8 +71,8 @@ impl IOptimizer for Optimizer {
 }
 
 impl IState for State {
-    fn get_score(&self) -> f64 {
-        self.score.get_score()
+    fn get_score(&self, progress: f64) -> f64 {
+        self.score.get_score(progress)
     }
 
     fn perform_command(&mut self, command: &Command) -> Vec<Command> {
@@ -112,11 +112,11 @@ impl ISolver for Solver {
             let progress = time::elapsed_seconds() / time_limit;
             let mut neighborhood = self.neighborhood_selector.select();
 
-            let current_score = self.state.get_score();
+            let current_score = self.state.get_score(progress);
 
             let performed_commands = neighborhood.perform(&mut self.state);
 
-            let new_score = self.state.get_score();
+            let new_score = self.state.get_score(progress);
 
             let adopt_new_state = self
                 .optimizer
@@ -295,10 +295,10 @@ impl Solver {
     }
 
     fn output_statistics(&self, n: usize, m: usize) {
-        eprintln!("state_score: {}", self.state.get_score());
+        eprintln!("state_score: {}", self.state.get_score(1.));
         eprintln!(
             "real_score: {}",
-            calc_real_score(n, m, self.state.get_score() as i64)
+            calc_real_score(n, m, self.state.score.base as i64)
         );
         self.neighborhood_selector.output_statistics();
 

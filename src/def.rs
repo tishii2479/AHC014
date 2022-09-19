@@ -6,11 +6,19 @@ pub const DIR_MAX: usize = 8;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Score {
     pub base: i64,
+    pub edge_length: i64,
 }
 
 impl Score {
-    pub fn get_score(&self) -> f64 {
-        self.base as f64
+    pub fn new() -> Score {
+        Score {
+            base: 0,
+            edge_length: 0,
+        }
+    }
+
+    pub fn get_score(&self, progress: f64) -> f64 {
+        self.base as f64 * 2. * progress - self.edge_length as f64
     }
 }
 
@@ -22,7 +30,7 @@ pub struct Square {
     pub connect: [Pos; 2],
 }
 
-static mut SQUARE_COUNTER: i64 = 0;
+pub static mut SQUARE_COUNTER: i64 = 0;
 
 impl Square {
     pub fn new(new_pos: Pos, diagonal: Pos, connect: [Pos; 2]) -> Square {
@@ -38,6 +46,10 @@ impl Square {
                 std::cmp::max(connect[0], connect[1]),
             ],
         }
+    }
+
+    pub fn size(&self) -> i64 {
+        Pos::dist(&self.new_pos, &self.connect[0]) + Pos::dist(&self.new_pos, &self.connect[1])
     }
 }
 
