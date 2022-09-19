@@ -43,10 +43,8 @@ impl NeighborhoodSelector {
 impl INeighborhoodSelector for NeighborhoodSelector {
     fn select(&self) -> Neighborhood {
         let p = rnd::nextf();
-        if p < 0. {
+        if p < 0.1 {
             return Neighborhood::Delete;
-        } else if p < 0.1 {
-            return Neighborhood::ChangeSquare;
         }
         return Neighborhood::Add;
     }
