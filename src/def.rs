@@ -51,6 +51,10 @@ pub enum Neighborhood {
 }
 
 impl Neighborhood {
+    pub fn all() -> [Neighborhood; 2] {
+        [Neighborhood::Add, Neighborhood::Delete]
+    }
+
     pub fn from_i64(v: i64) -> Neighborhood {
         match v {
             0 => Neighborhood::Add,

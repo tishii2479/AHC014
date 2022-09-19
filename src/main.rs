@@ -12,6 +12,8 @@ use lib::*;
 use proconio::input;
 use state::*;
 
+const TIME_LIMIT: f64 = 1.9;
+
 struct NeighborhoodSelector {
     total_cnt: Vec<i64>,
     adopted_cnt: Vec<i64>,
@@ -28,10 +30,11 @@ impl NeighborhoodSelector {
     fn output_statistics(&self) {
         for i in 0..self.total_cnt.len() {
             eprintln!(
-                "{:?}: (total_cnt: {}, adopted_cnt: {})",
+                "{:?}: (total_cnt: {}, adopted_cnt: {}, adopted_ratio: {:.4})",
                 Neighborhood::from_i64(i as i64),
                 self.total_cnt[i],
-                self.adopted_cnt[i]
+                self.adopted_cnt[i],
+                self.adopted_cnt[i] as f64 / self.total_cnt[i] as f64,
             );
         }
     }
@@ -244,7 +247,6 @@ impl Solver {
 fn main() {
     time::start_clock();
 
-    const TIME_LIMIT: f64 = 1.9;
     input! {
         n: usize,
         m: usize,
@@ -252,10 +254,9 @@ fn main() {
     }
 
     let state = State::new(n, p);
-    const NEIGHBORHOOD_COUNT: usize = 2;
     let mut solver = Solver {
         state,
-        neighborhood_selector: NeighborhoodSelector::new(NEIGHBORHOOD_COUNT),
+        neighborhood_selector: NeighborhoodSelector::new(Neighborhood::all().len()),
         optimizer: Optimizer {
             start_temp: 500.,
             end_temp: 0.,
