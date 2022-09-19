@@ -7,6 +7,7 @@ pub const DIR_MAX: usize = 8;
 pub struct Score {
     pub base: i64,
     pub edge_length: i64,
+    pub temporary: i64,
 }
 
 impl Score {
@@ -14,6 +15,7 @@ impl Score {
         Score {
             base: 0,
             edge_length: 0,
+            temporary: 0,
         }
     }
 

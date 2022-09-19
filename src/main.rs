@@ -135,6 +135,8 @@ impl ISolver for Solver {
             self.neighborhood_selector
                 .step(&neighborhood, adopt_new_state);
 
+            self.state.score.temporary = 0;
+
             if cfg!(debug_assertions) {
                 if loop_count % 100 == 0 {
                     self.score_history.push(self.state.score.base as f64);
