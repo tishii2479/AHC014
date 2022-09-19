@@ -42,8 +42,11 @@ impl NeighborhoodSelector {
 
 impl INeighborhoodSelector for NeighborhoodSelector {
     fn select(&self) -> Neighborhood {
-        if rnd::nextf() < 0.1 {
+        let p = rnd::nextf();
+        if p < 0. {
             return Neighborhood::Delete;
+        } else if p < 0.1 {
+            return Neighborhood::ChangeSquare;
         }
         return Neighborhood::Add;
     }
@@ -168,8 +171,8 @@ impl Neighborhood {
         assert!(state.grid.has_point(&pos));
         let point = state.grid.point(&pos).as_ref().unwrap().clone();
 
-        // TODO: randomize
-        for i in 0..DIR_MAX {
+        for _ in 0..DIR_MAX {
+            let i = rnd::gen_range(0, DIR_MAX);
             let diagonal_dir = Dir::from_i64(i as i64);
             if let Some(ignore_dir) = ignore_dir {
                 if ignore_dir == &diagonal_dir {
@@ -228,10 +231,9 @@ impl Neighborhood {
     fn attempt_change_square(&mut self, state: &mut State, pos: &Pos) -> Vec<Command> {
         assert!(state.grid.has_point(&pos));
         let point = state.grid.point(&pos).as_ref().unwrap().clone();
-        let mut performed_commands: Vec<Command> = vec![];
 
-        // TODO: Randomize
-        for i in 0..DIR_MAX {
+        for _ in 0..DIR_MAX {
+            let i = rnd::gen_range(0, DIR_MAX);
             let front = Dir::from_i64(i as i64);
             let left = front.prev().prev();
             if state.grid.has_edge(&pos, &left) && state.grid.has_edge(&pos, &front) {
@@ -242,8 +244,19 @@ impl Neighborhood {
                     continue;
                 }
                 if let Some(left_front_point) = state.grid.point(left_front_pos).clone() {
+                    if !left_front_point.is_added {
+                        continue;
+                    }
                     let added_square = left_front_point.added_info.as_ref().unwrap();
-                    state.perform_delete(&added_square, &mut performed_commands);
+                    let mut performed_commands = state.perform_command(&Command::Delete {
+                        square: added_square.clone(),
+                    });
+
+                    // 再帰的にposの点も消してしまった時は中止
+                    if !state.grid.has_point(&pos) {
+                        return performed_commands;
+                    }
+
                     performed_commands.append(&mut self.attempt_add(state, &pos, Some(&front)));
                     return performed_commands;
                 }

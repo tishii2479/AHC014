@@ -67,6 +67,7 @@ impl Neighborhood {
         match v {
             0 => Neighborhood::Add,
             1 => Neighborhood::Delete,
+            2 => Neighborhood::ChangeSquare,
             _ => panic!("Neighborhood value {} is invalid.", v),
         }
     }
