@@ -17,5 +17,4 @@ pub trait IOptimizer {
 
 pub trait ISolver {
     fn solve(&mut self, time_limit: f64);
-    fn perform_neighborhood(&mut self, neighborhood: Neighborhood) -> Vec<Command>;
 }

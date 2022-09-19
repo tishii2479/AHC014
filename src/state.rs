@@ -116,13 +116,6 @@ impl State {
             square: square.clone(),
         });
     }
-
-    pub fn perform_change_square(
-        &mut self,
-        square: &Square,
-        performed_commands: &mut Vec<Command>,
-    ) {
-    }
 }
 
 impl State {
@@ -237,7 +230,8 @@ fn test_change_square() {
 
     let mut state = State::new(n, p);
     let square = Square::new(old_pos.clone(), selected_p.clone(), connect.clone());
-    state.perform_add(&square, false);
+    let mut neighborhood = Neighborhood::ChangeSquare;
+    neighborhood.perform_change_square(&mut state);
 }
 
 #[test]
