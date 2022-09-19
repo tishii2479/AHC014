@@ -22,7 +22,7 @@ impl Score {
     #[allow(unused_variables)]
     pub fn get_score(&self, progress: f64) -> f64 {
         // self.base as f64 * 2. - self.edge_length as f64 * (1. - progress)
-        self.base as f64
+        self.base as f64 + self.temporary as f64 * (1. - progress)
     }
 }
 

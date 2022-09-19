@@ -200,9 +200,9 @@ impl Neighborhood {
                 }
 
                 let connect: [Pos; 2] = [pos_prev.clone(), pos_next.clone()];
-                let performed_commands = state.perform_command(&Command::Add {
-                    square: Square::new(new_pos, pos.clone(), connect),
-                });
+                let square = Square::new(new_pos, pos.clone(), connect);
+
+                let performed_commands = state.perform_command(&Command::Add { square });
                 if performed_commands.len() > 0 {
                     return performed_commands;
                 }
