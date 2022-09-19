@@ -1,4 +1,4 @@
-const TIME_LIMIT: f64 = 4.9;
+const TIME_LIMIT: f64 = 4.95;
 
 mod def; // expand
 mod framework; // expand
