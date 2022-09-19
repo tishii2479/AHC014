@@ -129,7 +129,9 @@ impl ISolver for Solver {
                 .step(&neighborhood, adopt_new_state);
 
             if cfg!(debug_assertions) {
-                self.score_history.push(self.state.score.base as f64);
+                if loop_count % 100 == 0 {
+                    self.score_history.push(self.state.score.base as f64);
+                }
                 loop_count += 1;
             }
         }
