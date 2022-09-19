@@ -109,11 +109,11 @@ impl ISolver for Solver {
         let mut loop_count = 0;
         while time::elapsed_seconds() < time_limit {
             let progress = time::elapsed_seconds() / time_limit;
-            let neighborhood = self.neighborhood_selector.select();
+            let mut neighborhood = self.neighborhood_selector.select();
 
             let current_score = self.state.get_score();
 
-            let performed_commands = self.perform_neighborhood(neighborhood);
+            let performed_commands = neighborhood.perform(&mut self.state);
 
             let new_score = self.state.get_score();
 
@@ -143,20 +143,19 @@ impl ISolver for Solver {
             eprintln!("loop_count: {}", loop_count);
         }
     }
-
-    fn perform_neighborhood(&mut self, neighborhood: Neighborhood) -> Vec<Command> {
-        match neighborhood {
-            Neighborhood::Add => self.perform_add(),
-            Neighborhood::Delete => self.perform_delete(),
-        }
-    }
 }
 
-impl Solver {
-    fn perform_add(&mut self) -> Vec<Command> {
-        let selected_p =
-            self.state.points[rnd::gen_range(0, self.state.points.len()) as usize].clone();
-        let point = self.state.grid.point(&selected_p).as_ref().unwrap().clone();
+impl Neighborhood {
+    fn perform(&mut self, state: &mut State) -> Vec<Command> {
+        match self {
+            Neighborhood::Add => self.perform_add(state),
+            Neighborhood::Delete => self.perform_delete(state),
+        }
+    }
+
+    fn perform_add(&mut self, state: &mut State) -> Vec<Command> {
+        let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
+        let point = state.grid.point(&selected_p).as_ref().unwrap().clone();
 
         // TODO: randomize
         for i in 0..DIR_MAX {
@@ -170,15 +169,15 @@ impl Solver {
             ) {
                 let new_pos = pos_next + &(pos_prev - &selected_p);
 
-                if !self.state.grid.is_valid(&new_pos) {
+                if !state.grid.is_valid(&new_pos) {
                     continue;
                 }
-                if self.state.grid.has_point(&new_pos) {
+                if state.grid.has_point(&new_pos) {
                     continue;
                 }
 
                 let connect: [Pos; 2] = [pos_prev.clone(), pos_next.clone()];
-                let performed_commands = self.state.perform_command(&Command::Add {
+                let performed_commands = state.perform_command(&Command::Add {
                     square: Square::new(new_pos, selected_p.clone(), connect),
                 });
                 if performed_commands.len() > 0 {
@@ -189,14 +188,11 @@ impl Solver {
         return vec![];
     }
 
-    fn perform_delete(&mut self) -> Vec<Command> {
-        let selected_p =
-            self.state.points[rnd::gen_range(0, self.state.points.len()) as usize].clone();
-        let point = self.state.grid.point(&selected_p).as_ref().unwrap().clone();
+    fn perform_delete(&mut self, state: &mut State) -> Vec<Command> {
+        let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
+        let point = state.grid.point(&selected_p).as_ref().unwrap().clone();
         if let Some(added_info) = point.added_info {
-            return self
-                .state
-                .perform_command(&Command::Delete { square: added_info });
+            return state.perform_command(&Command::Delete { square: added_info });
         }
         return vec![];
     }
