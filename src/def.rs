@@ -48,11 +48,16 @@ pub enum Command {
 pub enum Neighborhood {
     Add = 0,
     Delete = 1,
+    ChangeSquare = 2,
 }
 
 impl Neighborhood {
-    pub fn all() -> [Neighborhood; 2] {
-        [Neighborhood::Add, Neighborhood::Delete]
+    pub fn all() -> [Neighborhood; 3] {
+        [
+            Neighborhood::Add,
+            Neighborhood::Delete,
+            Neighborhood::ChangeSquare,
+        ]
     }
 
     pub fn from_i64(v: i64) -> Neighborhood {

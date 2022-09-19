@@ -116,6 +116,13 @@ impl State {
             square: square.clone(),
         });
     }
+
+    pub fn perform_change_square(
+        &mut self,
+        square: &Square,
+        performed_commands: &mut Vec<Command>,
+    ) {
+    }
 }
 
 impl State {
@@ -211,6 +218,26 @@ fn test_add_point() {
         }
         None => assert!(false),
     }
+}
+
+#[test]
+fn test_change_square() {
+    let selected_p = Pos { x: 2, y: 2 };
+    let connect: [Pos; 2] = [Pos { x: 2, y: 0 }, Pos { x: 0, y: 2 }];
+    let connect2: [Pos; 2] = [Pos { x: 2, y: 0 }, Pos { x: 4, y: 2 }];
+    let old_pos = Pos { x: 0, y: 0 };
+    let new_pos = Pos { x: 4, y: 0 };
+    let n: usize = 5;
+    let p = vec![
+        selected_p.clone(),
+        connect[0].clone(),
+        connect[1].clone(),
+        connect2[1].clone(),
+    ];
+
+    let mut state = State::new(n, p);
+    let square = Square::new(old_pos.clone(), selected_p.clone(), connect.clone());
+    state.perform_add(&square, false);
 }
 
 #[test]

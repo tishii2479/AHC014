@@ -1,3 +1,5 @@
+const TIME_LIMIT: f64 = 1.9;
+
 mod def; // expand
 mod framework; // expand
 mod grid; // expand
@@ -11,8 +13,6 @@ use framework::*;
 use lib::*;
 use proconio::input;
 use state::*;
-
-const TIME_LIMIT: f64 = 1.9;
 
 struct NeighborhoodSelector {
     total_cnt: Vec<i64>,
@@ -148,6 +148,7 @@ impl ISolver for Solver {
         match neighborhood {
             Neighborhood::Add => self.perform_add(),
             Neighborhood::Delete => self.perform_delete(),
+            Neighborhood::ChangeSquare => self.perform_change_square(),
         }
     }
 }
@@ -198,6 +199,47 @@ impl Solver {
                 .state
                 .perform_command(&Command::Delete { square: added_info });
         }
+        return vec![];
+    }
+
+    fn perform_change_square(&mut self) -> Vec<Command> {
+        // 四角を作っている点を探す
+        let selected_p =
+            self.state.points[rnd::gen_range(0, self.state.points.len()) as usize].clone();
+        let point = self.state.grid.point(&selected_p).as_ref().unwrap().clone();
+
+        // TODO: Randomize
+        for i in 0..DIR_MAX {
+            let front = Dir::from_i64(i as i64);
+            let left = front.prev().prev();
+            let right = front.next().next();
+
+            if self.state.grid.has_edge(&selected_p, &left)
+                && self.state.grid.has_edge(&selected_p, &front)
+                && !self.state.grid.has_edge(&selected_p, &right)
+                && point.nearest_points[right.val() as usize].is_some()
+            {}
+
+            // if let (Some(pos_front), Some(pos_left), Some(pos_right)) = (
+            //     &point.nearest_points[front.val() as usize],
+            //     &point.nearest_points[left.val() as usize],
+            //     &point.nearest_points[right.val() as usize],
+            // ) {
+            // if let Some(point_right_diagonal) = self.state.grid.point(&pos_right_diagonal) {
+            //     if let Some(added_info) = &point_right_diagonal.added_info {
+            //         if added_info.diagonal == selected_p
+            //             && ((&added_info.connect[0] == pos_right
+            //                 && &added_info.connect[1] == pos_front)
+            //                 || (&added_info.connect[1] == pos_right
+            //                     && &added_info.connect[0] == pos_front))
+            //         {
+            //         }
+            //     }
+            // }
+            // }
+        }
+
+        panic!("Not implemented");
         return vec![];
     }
 }
