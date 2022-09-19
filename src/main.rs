@@ -1,4 +1,4 @@
-const TIME_LIMIT: f64 = 1.9;
+const TIME_LIMIT: f64 = 4.9;
 
 mod def; // expand
 mod framework; // expand
@@ -44,7 +44,7 @@ impl INeighborhoodSelector for NeighborhoodSelector {
     fn select(&self) -> Neighborhood {
         let p = rnd::nextf();
         if p < 0.1 {
-            return Neighborhood::Delete;
+            return Neighborhood::ChangeSquare;
         }
         return Neighborhood::Add;
     }
@@ -255,7 +255,11 @@ impl Neighborhood {
                         return performed_commands;
                     }
 
-                    performed_commands.append(&mut self.attempt_add(state, &pos, Some(&front)));
+                    performed_commands.append(&mut self.attempt_add(
+                        state,
+                        &pos,
+                        Some(&front.prev()),
+                    ));
                     return performed_commands;
                 }
             }

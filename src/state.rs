@@ -242,12 +242,10 @@ fn test_change_square() {
     let performed_commands = neighborhood.attempt_change_square(&mut state, &selected_p);
 
     assert_eq!(performed_commands.len(), 2);
+    // FXIME: Squareのidは異なってしまう
+    // assert_eq!(state, other_state);
     assert!(!state.grid.has_point(&old_pos));
     assert!(state.grid.has_point(&new_pos));
-
-    // Squareのidは異なってしまうので、それ以外で比較する
-    assert_eq!(state.points, other_state.points);
-    assert_eq!(state.score, other_state.score);
 
     for command in performed_commands.iter().rev() {
         state.reverse_command(command);
