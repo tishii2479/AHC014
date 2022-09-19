@@ -264,9 +264,8 @@ fn main() {
     solver.solve(TIME_LIMIT);
     solver.output();
 
-    eprintln!("run_time: {}", time::elapsed_seconds());
-
     if cfg!(debug_assertions) {
+        eprintln!("run_time: {}", time::elapsed_seconds());
         solver.output_statistics(n, m);
     }
 }

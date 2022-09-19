@@ -47,7 +47,7 @@ pub enum Command {
 #[derive(Debug, Clone, Copy)]
 pub enum Neighborhood {
     Add = 0,
-    Delete,
+    Delete = 1,
 }
 
 impl Neighborhood {
@@ -55,7 +55,7 @@ impl Neighborhood {
         match v {
             0 => Neighborhood::Add,
             1 => Neighborhood::Delete,
-            _ => panic!("Dir value {} is invalid.", v),
+            _ => panic!("Neighborhood value {} is invalid.", v),
         }
     }
 }
