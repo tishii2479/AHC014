@@ -56,7 +56,7 @@ def main():
     ave = total / CASE
     print(f"total: {total}")
     for i in range(10):
-        print(f"{scores[-i]}")
+        print(f"{scores[-(i+1)]}")
     for i in range(10):
         print(f"{scores[i]}")
     print(f"ave: {ave}")
