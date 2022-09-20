@@ -1,5 +1,9 @@
 const TIME_LIMIT: f64 = 4.95;
 
+const DELETION_RECURSION_LIMIT: usize = 10;
+const START_TEMP: f64 = 500.;
+const END_TEMP: f64 = 0.;
+
 mod def; // expand
 mod framework; // expand
 mod grid; // expand
@@ -82,6 +86,13 @@ impl IState for State {
         match command {
             Command::Add { square } => self.perform_add(square, false),
             Command::Delete { square } => {
+                // 削除する四角が多すぎるときは不採用
+                if self.calc_deletion_size(&square.new_pos, DELETION_RECURSION_LIMIT, 0)
+                    >= DELETION_RECURSION_LIMIT
+                {
+                    return vec![];
+                }
+
                 let mut performed_commands: Vec<Command> = vec![];
                 self.perform_delete(square, &mut performed_commands);
                 performed_commands
@@ -141,13 +152,13 @@ impl ISolver for Solver {
                 if loop_count % 100 == 0 {
                     self.score_history.push(self.state.score.base as f64);
                 }
-                loop_count += 1;
             }
+            loop_count += 1;
         }
 
-        if cfg!(debug_assertions) {
-            eprintln!("loop_count: {}", loop_count);
-        }
+        // if cfg!(debug_assertions) {
+        eprintln!("loop_count: {}", loop_count);
+        // }
     }
 }
 
@@ -330,8 +341,8 @@ fn main() {
         state,
         neighborhood_selector: NeighborhoodSelector::new(Neighborhood::all().len()),
         optimizer: Optimizer {
-            start_temp: 500.,
-            end_temp: 0.,
+            start_temp: START_TEMP,
+            end_temp: END_TEMP,
         },
         score_history: vec![],
     };

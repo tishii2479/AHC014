@@ -73,7 +73,6 @@ impl State {
         }]
     }
 
-    // TODO: add recursion limit
     pub fn perform_delete(&mut self, square: &Square, performed_commands: &mut Vec<Command>) {
         assert!(Pos::is_aligned(&square.diagonal, &square.connect[0]));
         assert!(Pos::is_aligned(&square.diagonal, &square.connect[1]));
@@ -119,6 +118,31 @@ impl State {
         performed_commands.push(Command::Delete {
             square: square.clone(),
         });
+    }
+
+    pub fn calc_deletion_size(
+        &mut self,
+        new_pos: &Pos,
+        recursion_limit: usize,
+        parent_dep_size: usize,
+    ) -> usize {
+        let mut dep_size: usize = 1 + parent_dep_size;
+
+        let point = self.grid.point(&new_pos).as_ref().unwrap().clone();
+        for created_point in &point.created_points {
+            if dep_size >= recursion_limit {
+                return dep_size - parent_dep_size;
+            }
+
+            // 再帰的に処理する場合、既に削除されている時があるので、その時は何もしない
+            // TODO: 正当性の確認
+            if !self.grid.has_point(&created_point) {
+                continue;
+            }
+            dep_size += self.calc_deletion_size(&created_point, recursion_limit, dep_size);
+        }
+
+        dep_size - parent_dep_size
     }
 }
 

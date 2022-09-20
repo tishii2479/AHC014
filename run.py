@@ -12,7 +12,11 @@ def execute_case(seed):
     with open(input_file_path) as fin:
         with open(output_file_path, "w") as fout:
             subprocess.run(
-                ["target/release/ahc014"], stdin=fin, stdout=fout, timeout=TL
+                ["target/release/ahc014"],
+                stdin=fin,
+                stdout=fout,
+                stderr=subprocess.PIPE,
+                timeout=TL,
             )
             pipefile = f"tools/out/pipefile_{seed:04}"
             with pipes.Template().open(pipefile, "w") as p:
