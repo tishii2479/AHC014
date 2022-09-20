@@ -318,11 +318,13 @@ impl Solver {
         );
         self.neighborhood_selector.output_statistics();
 
-        // スコア遷移の書き出し
-        let mut file = fs::File::create("tools/out/score_log.txt").unwrap();
-        for score in &self.score_history {
-            let score = calc_real_score(n, m, *score as i64);
-            file.write((score.to_string() + "\n").as_bytes()).unwrap();
+        if cfg!(debug_assertions) {
+            // スコア遷移の書き出し
+            let mut file = fs::File::create("tools/out/score_log.txt").unwrap();
+            for score in &self.score_history {
+                let score = calc_real_score(n, m, *score as i64);
+                file.write((score.to_string() + "\n").as_bytes()).unwrap();
+            }
         }
     }
 }
@@ -350,10 +352,8 @@ fn main() {
     solver.solve(TIME_LIMIT);
     solver.output();
 
-    if cfg!(debug_assertions) {
-        eprintln!("run_time: {}", time::elapsed_seconds());
-        solver.output_statistics(n, m);
-    }
+    eprintln!("run_time: {}", time::elapsed_seconds());
+    solver.output_statistics(n, m);
 }
 
 fn calc_weight(n: i64, pos: &Pos) -> i64 {

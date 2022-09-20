@@ -55,9 +55,11 @@ def main():
     scores.sort()
     ave = total / CASE
     print(f"total: {total}")
-    print(f"max: {scores[-1]}")
+    for i in range(10):
+        print(f"{scores[-i]}")
+    for i in range(10):
+        print(f"{scores[i]}")
     print(f"ave: {ave}")
-    print(f"min: {scores[0]}")
 
     div = 30
     cnt = [0] * div
