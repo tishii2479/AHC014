@@ -352,8 +352,8 @@ fn main() {
     solver.solve(TIME_LIMIT);
     solver.output();
 
-    eprintln!("run_time: {}", time::elapsed_seconds());
     solver.output_statistics(n, m);
+    eprintln!("run_time: {}", time::elapsed_seconds());
 }
 
 fn calc_weight(n: i64, pos: &Pos) -> i64 {

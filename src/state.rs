@@ -67,6 +67,7 @@ impl State {
         // スコアの更新
         self.score.base += self.weight(&square.new_pos);
         self.score.edge_length += square.size();
+        self.score.temporary = self.grid.size as i64;
 
         vec![Command::Add {
             square: square.clone(),
