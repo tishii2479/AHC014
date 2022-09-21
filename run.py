@@ -2,13 +2,16 @@ import multiprocessing
 import pipes
 import subprocess
 
-CASE = 100
+CASE = 1000
 TL = 6.0
 
 
 def execute_case(seed):
     input_file_path = f"tools/in/{seed:04}.txt"
     output_file_path = f"tools/out/{seed:04}.txt"
+    with open(input_file_path) as f:
+        n, m = map(int, f.readline().split())
+
     with open(input_file_path) as fin:
         with open(output_file_path, "w") as fout:
             subprocess.run(
@@ -27,16 +30,20 @@ def execute_case(seed):
                 )
             output = open(pipefile).read()
             assert output
-    return seed, output
+    return seed, output, n, m
 
 
 def main():
     scores = []
     count = 0
     total = 0
+
+    div_scores = [[0] * 10 for _ in range(6)]
+    div_counts = [[0] * 10 for _ in range(6)]
+
     subprocess.run("cargo build --release", shell=True)
     with multiprocessing.Pool(max(1, multiprocessing.cpu_count() - 2)) as pool:
-        for seed, score in pool.imap_unordered(execute_case, range(CASE)):
+        for seed, score, n, m in pool.imap_unordered(execute_case, range(CASE)):
             if count > 0 and count % 10 == 0:
                 print(f"case: {count}, current ave: {total / count}", flush=True)
             try:
@@ -51,6 +58,10 @@ def main():
                 print(f"error: {score}", flush=True)
                 exit()
             count += 1
+
+            div_scores[min(5, (n - 31) // 5)][(m - 30) // 30] += scores[-1][0]
+            div_counts[min(5, (n - 31) // 5)][(m - 30) // 30] += 1
+
     print()
     scores.sort()
     ave = total / CASE
@@ -71,6 +82,21 @@ def main():
     for i in range(div):
         score = base + i * step
         print(f"{score:7} ~ {score + step - 1:7}: " + "o" * (cnt[i] * 100 // CASE))
+
+    print(" " * 5 + " |", end=" ")
+    for j in range(10):
+        print(f"{j * 30 + 30}~{(j+1) * 30 + 30 - 1}".rjust(7, " "), end=" ")
+    print()
+    print("-" * (10 * 8 + 7))
+
+    for i in range(6):
+        print(f"{i * 5 + 31}~{(i+1) * 5 + 31 - 1} |", end=" ")
+        for j in range(10):
+            if div_counts[i][j] != 0:
+                print(f"{div_scores[i][j] // div_counts[i][j]:7}", end=" ")
+            else:
+                print(f"    nan", end=" ")
+        print()
 
 
 if __name__ == "__main__":
