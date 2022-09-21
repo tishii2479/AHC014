@@ -1,6 +1,7 @@
 const TIME_LIMIT: f64 = 4.95;
 
 const DEFAULT_DIST: i64 = 5;
+const EDGE_PENALTY: i64 = 1000;
 const DELETION_RECURSION_LIMIT: usize = 10;
 const START_TEMP: f64 = 500.;
 const END_TEMP: f64 = 0.;

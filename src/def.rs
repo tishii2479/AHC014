@@ -8,6 +8,7 @@ pub struct Score {
     pub base: i64,
     pub edge_length: i64,
     pub point_closeness: i64,
+    pub penalty: i64,
 }
 
 impl Score {
@@ -16,15 +17,17 @@ impl Score {
             base: 0,
             edge_length: 0,
             point_closeness: 0,
+            penalty: 0,
         }
     }
 }
 
-impl ops::AddAssign<Score> for Score {
-    fn add_assign(&mut self, rhs: Score) {
+impl ops::AddAssign<&Score> for Score {
+    fn add_assign(&mut self, rhs: &Score) {
         self.base += rhs.base;
         self.edge_length += rhs.edge_length;
         self.point_closeness += rhs.point_closeness;
+        self.penalty += rhs.penalty;
     }
 }
 
