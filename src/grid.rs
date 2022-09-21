@@ -32,7 +32,7 @@ impl Grid {
         return true;
     }
 
-    pub fn connect(&mut self, a: &Pos, b: &Pos, is_reverse: bool) {
+    fn connect(&mut self, a: &Pos, b: &Pos, is_reverse: bool) {
         let dir = Pos::get_dir(a, b);
         self.add_edge(a, &dir);
         for p in Pos::between(a, b) {
@@ -46,7 +46,7 @@ impl Grid {
         self.add_edge(b, &dir.rev());
     }
 
-    pub fn disconnect(&mut self, a: &Pos, b: &Pos) {
+    fn disconnect(&mut self, a: &Pos, b: &Pos) {
         let dir = Pos::get_dir(a, b);
         self.remove_edge(a, &dir);
         for p in Pos::between(a, b) {
@@ -164,11 +164,11 @@ impl Grid {
         point_closeness_diff
     }
 
-    pub fn add_edge(&mut self, pos: &Pos, dir: &Dir) {
+    fn add_edge(&mut self, pos: &Pos, dir: &Dir) {
         self.edges[pos.y as usize][pos.x as usize][dir.val() as usize] = true;
     }
 
-    pub fn remove_edge(&mut self, pos: &Pos, dir: &Dir) {
+    fn remove_edge(&mut self, pos: &Pos, dir: &Dir) {
         self.edges[pos.y as usize][pos.x as usize][dir.val() as usize] = false;
     }
 

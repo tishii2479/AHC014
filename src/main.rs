@@ -1,7 +1,6 @@
 const TIME_LIMIT: f64 = 3.35;
 
 const DELETION_RECURSION_LIMIT: usize = 10;
-const DEFAULT_DIST: i64 = 50;
 const START_TEMP: f64 = 500.;
 const END_TEMP: f64 = 0.;
 
@@ -79,12 +78,13 @@ impl IOptimizer for Optimizer {
 }
 
 impl IState for State {
+    #[allow(unused_variables)]
     fn get_score(&self, progress: f64) -> f64 {
         let base_score = self.score.base as f64;
-        let closeness_score =
-            (self.points.len() as i64 * DEFAULT_DIST - self.score.point_closeness) as f64 / 8.;
+        let point_closeness_score =
+            -self.score.point_closeness as f64 / self.points.len() as f64 * 100.;
         // eprintln!("{}, {}", base_score, closeness_score);
-        base_score + closeness_score * (1. - progress)
+        base_score + point_closeness_score * (1. - progress)
     }
 
     fn perform_command(&mut self, command: &Command) -> Vec<Command> {
@@ -288,7 +288,7 @@ impl Neighborhood {
         return vec![];
     }
 
-    fn perform_split_square(&mut self, state: &mut State) -> Vec<Command> {
+    fn perform_split_square(&mut self, _state: &mut State) -> Vec<Command> {
         panic!("Not implemented");
     }
 }
