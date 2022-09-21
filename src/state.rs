@@ -155,6 +155,31 @@ impl State {
 }
 
 #[test]
+fn test_add_point_on_square_edge() {
+    let diagonal = Pos { x: 0, y: 0 };
+    let connect: [Pos; 2] = [Pos { x: 2, y: 0 }, Pos { x: 0, y: 2 }];
+    let new_pos = Pos { x: 2, y: 2 };
+    let diagonal2 = Pos { x: 4, y: 1 };
+    let connect2: [Pos; 2] = [Pos { x: 3, y: 0 }, Pos { x: 3, y: 2 }];
+    let new_pos2 = Pos { x: 2, y: 1 };
+    let n: usize = 5;
+    let p = vec![
+        diagonal.clone(),
+        connect[0].clone(),
+        connect[1].clone(),
+        diagonal2.clone(),
+        connect2[0].clone(),
+        connect2[1].clone(),
+    ];
+    let mut state = State::new(n, p);
+    let square = Square::new(new_pos.clone(), diagonal.clone(), connect.clone());
+    let square2 = Square::new(new_pos2.clone(), diagonal2.clone(), connect2.clone());
+
+    state.perform_add(&square, false);
+    assert_eq!(state.perform_add(&square2, false).len(), 1);
+}
+
+#[test]
 fn test_delete_point() {
     let diagonal = Pos { x: 0, y: 0 };
     let connect: [Pos; 2] = [Pos { x: 2, y: 0 }, Pos { x: 0, y: 2 }];
