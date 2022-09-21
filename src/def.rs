@@ -20,6 +20,14 @@ impl Score {
     }
 }
 
+impl ops::AddAssign<Score> for Score {
+    fn add_assign(&mut self, rhs: Score) {
+        self.base += rhs.base;
+        self.edge_length += rhs.edge_length;
+        self.point_closeness += rhs.point_closeness;
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Square {
     pub id: i64,

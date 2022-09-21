@@ -58,10 +58,9 @@ impl Grid {
         self.remove_edge(b, &dir.rev());
     }
 
-    // TODO: return Score
-    pub fn create_square(&mut self, square: &Square, is_reverse: bool) -> i64 {
+    pub fn create_square(&mut self, square: &Square, is_reverse: bool) -> Score {
         // 点を追加する
-        let point_closeness_diff = self.add_point(
+        let score = self.add_point(
             &square.new_pos,
             Point::new(&square.new_pos, true),
             Some(square.clone()),
@@ -78,13 +77,12 @@ impl Grid {
         self.register_created_points(&square.connect[1], &square.new_pos);
         self.register_created_points(&square.diagonal, &square.new_pos);
 
-        point_closeness_diff
+        score
     }
 
-    // TODO: return Score
-    pub fn delete_square(&mut self, square: &Square) -> i64 {
+    pub fn delete_square(&mut self, square: &Square) -> Score {
         // 点を削除する
-        let point_closeness_diff = self.remove_point(&square.new_pos);
+        let score = self.remove_point(&square.new_pos);
 
         // 辺を削除する
         self.disconnect(&square.connect[0], &square.new_pos);
@@ -97,14 +95,13 @@ impl Grid {
         self.unregister_created_points(&square.connect[1], &square.new_pos);
         self.unregister_created_points(&square.diagonal, &square.new_pos);
 
-        point_closeness_diff
+        score
     }
 
-    // TODO: return Score
-    pub fn remove_point(&mut self, pos: &Pos) -> i64 {
+    pub fn remove_point(&mut self, pos: &Pos) -> Score {
         assert!(self.has_point(&pos));
 
-        let mut point_closeness_diff: i64 = 0;
+        let mut score = Score::new();
 
         let point = self.point(&pos).as_ref().unwrap().clone();
         for i in 0..DIR_MAX {
@@ -112,7 +109,7 @@ impl Grid {
             if let Some(nearest_pos) = &point.nearest_points[dir.val() as usize] {
                 assert!(self.has_point(&nearest_pos));
 
-                point_closeness_diff -= i64::max(0, DEFAULT_DIST - Pos::dist(pos, nearest_pos));
+                score.point_closeness -= i64::max(0, DEFAULT_DIST - Pos::dist(pos, nearest_pos));
 
                 if let Some(opposite_nearest_pos) = &point.nearest_points[dir.rev().val() as usize]
                 {
@@ -120,7 +117,7 @@ impl Grid {
                         [dir.rev().val() as usize] = Some(opposite_nearest_pos.clone());
 
                     if i < DIR_MAX / 2 {
-                        point_closeness_diff += i64::max(
+                        score.point_closeness += i64::max(
                             0,
                             DEFAULT_DIST - Pos::dist(opposite_nearest_pos, nearest_pos),
                         );
@@ -133,14 +130,13 @@ impl Grid {
         }
         self.points[pos.y as usize][pos.x as usize] = None;
 
-        point_closeness_diff
+        score
     }
 
-    // TODO: return Score
-    pub fn add_point(&mut self, pos: &Pos, mut point: Point, square: Option<Square>) -> i64 {
+    pub fn add_point(&mut self, pos: &Pos, mut point: Point, square: Option<Square>) -> Score {
         assert!(!self.has_point(&pos));
 
-        let mut point_closeness_diff: i64 = 0;
+        let mut score = Score::new();
 
         for i in 0..DIR_MAX {
             let dir = Dir::from_i64(i as i64);
@@ -150,7 +146,7 @@ impl Grid {
                     if let Some(prev_nearest_point_nearest_pos) =
                         nearest_point.nearest_points[dir.rev().val() as usize]
                     {
-                        point_closeness_diff -= i64::max(
+                        score.point_closeness -= i64::max(
                             0,
                             DEFAULT_DIST - Pos::dist(&prev_nearest_point_nearest_pos, &nearest_pos),
                         );
@@ -160,13 +156,13 @@ impl Grid {
                 nearest_point.nearest_points[dir.rev().val() as usize] = Some(pos.clone());
                 point.nearest_points[dir.val() as usize] = Some(nearest_pos.clone());
 
-                point_closeness_diff += i64::max(0, DEFAULT_DIST - Pos::dist(&pos, &nearest_pos));
+                score.point_closeness += i64::max(0, DEFAULT_DIST - Pos::dist(&pos, &nearest_pos));
             }
         }
         point.added_info = square.clone();
         self.points[pos.y as usize][pos.x as usize] = Some(point);
 
-        point_closeness_diff
+        score
     }
 
     fn add_edge(&mut self, pos: &Pos, dir: &Dir) {
