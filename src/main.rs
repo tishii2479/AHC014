@@ -1,4 +1,4 @@
-const TIME_LIMIT: f64 = 4.95;
+const TIME_LIMIT: f64 = 3.35;
 
 const DELETION_RECURSION_LIMIT: usize = 10;
 const START_TEMP: f64 = 500.;
