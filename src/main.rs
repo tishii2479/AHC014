@@ -1,7 +1,7 @@
 const TIME_LIMIT: f64 = 4.95;
 
 const DEFAULT_DIST: i64 = 5;
-const EDGE_PENALTY: i64 = 1000;
+const POINT_PENALTY: i64 = 100;
 const DELETION_RECURSION_LIMIT: usize = 10;
 const START_TEMP: f64 = 500.;
 const END_TEMP: f64 = 0.;
@@ -85,7 +85,15 @@ impl IState for State {
         let base_score = self.score.base as f64;
         let point_closeness_score = self.score.point_closeness as f64;
         let threshold = progress * 3. * DEFAULT_DIST as f64 * self.points.len() as f64;
+        let point_penalty_score =
+            (self.score.point_penalty * POINT_PENALTY) as f64 * (1. - progress);
         // base_score + point_closeness_score - threshold
+        // eprintln!(
+        //     "{} {}",
+        //     base_score,
+        //     self.score.point_penalty * POINT_PENALTY
+        // );
+        // base_score - point_penalty_score
         base_score
     }
 

@@ -58,9 +58,51 @@ impl Grid {
         self.remove_edge(b, &dir.rev());
     }
 
+    pub fn calc_point_penalty(&self, square: &Square) -> Score {
+        let mut score = Score::new();
+        let is_diagonal = Pos::get_dir(&square.new_pos, &square.connect[0]).is_diagonal();
+
+        let (min_x, max_x, min_y, max_y) = square.get_corners();
+        let c = (self.size as i64 - 1) / 2;
+        if is_diagonal {
+            for pos in square.all_pos() {
+                let xd = pos.x - c;
+                let yd = pos.y - c;
+                let is_top_bottom = (xd <= yd && -xd <= yd) || (xd >= yd && -xd >= yd);
+                let is_side_points = pos.x == min_x || pos.x == max_x;
+                if is_top_bottom {
+                    if pos.x % 2 == if is_side_points { 0 } else { 1 } {
+                        score.point_penalty += 1;
+                    } else {
+                        score.point_penalty -= 1;
+                    }
+                } else {
+                    if pos.y % 2 == if is_side_points { 0 } else { 1 } {
+                        score.point_penalty += 1;
+                    } else {
+                        score.point_penalty -= 1;
+                    }
+                }
+            }
+        } else {
+            for pos in square.all_pos() {
+                let p = pos.x + pos.y;
+                let is_left_bottom_or_right_top =
+                    (pos.x == min_x && pos.y == min_y) || (pos.x == max_x && pos.y == max_y);
+                if p % 2 == if is_left_bottom_or_right_top { 0 } else { 1 } {
+                    score.point_penalty += 1;
+                } else {
+                    score.point_penalty -= 1;
+                }
+            }
+        }
+
+        score
+    }
+
     pub fn create_square(&mut self, square: &Square, is_reverse: bool) -> Score {
         // 点を追加する
-        let score = self.add_point(
+        let mut score = self.add_point(
             &square.new_pos,
             Point::new(&square.new_pos, true),
             Some(square.clone()),
@@ -77,12 +119,14 @@ impl Grid {
         self.register_created_points(&square.connect[1], &square.new_pos);
         self.register_created_points(&square.diagonal, &square.new_pos);
 
+        score += &self.calc_point_penalty(square);
+
         score
     }
 
     pub fn delete_square(&mut self, square: &Square) -> Score {
         // 点を削除する
-        let score = self.remove_point(&square.new_pos);
+        let mut score = self.remove_point(&square.new_pos);
 
         // 辺を削除する
         self.disconnect(&square.connect[0], &square.new_pos);
@@ -94,6 +138,8 @@ impl Grid {
         self.unregister_created_points(&square.connect[0], &square.new_pos);
         self.unregister_created_points(&square.connect[1], &square.new_pos);
         self.unregister_created_points(&square.diagonal, &square.new_pos);
+
+        score -= &self.calc_point_penalty(square);
 
         score
     }

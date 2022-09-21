@@ -8,7 +8,7 @@ pub struct Score {
     pub base: i64,
     pub edge_length: i64,
     pub point_closeness: i64,
-    pub penalty: i64,
+    pub point_penalty: i64,
 }
 
 impl Score {
@@ -17,7 +17,7 @@ impl Score {
             base: 0,
             edge_length: 0,
             point_closeness: 0,
-            penalty: 0,
+            point_penalty: 0,
         }
     }
 }
@@ -27,7 +27,16 @@ impl ops::AddAssign<&Score> for Score {
         self.base += rhs.base;
         self.edge_length += rhs.edge_length;
         self.point_closeness += rhs.point_closeness;
-        self.penalty += rhs.penalty;
+        self.point_penalty += rhs.point_penalty;
+    }
+}
+
+impl ops::SubAssign<&Score> for Score {
+    fn sub_assign(&mut self, rhs: &Score) {
+        self.base -= rhs.base;
+        self.edge_length -= rhs.edge_length;
+        self.point_closeness -= rhs.point_closeness;
+        self.point_penalty -= rhs.point_penalty;
     }
 }
 
@@ -59,6 +68,29 @@ impl Square {
 
     pub fn size(&self) -> i64 {
         Pos::dist(&self.new_pos, &self.connect[0]) + Pos::dist(&self.new_pos, &self.connect[1])
+    }
+
+    pub fn all_pos(&self) -> [&Pos; 4] {
+        [
+            &self.new_pos,
+            &self.connect[0],
+            &self.diagonal,
+            &self.connect[1],
+        ]
+    }
+
+    pub fn get_corners(&self) -> (i64, i64, i64, i64) {
+        let mut min_x = 100;
+        let mut max_x = -1;
+        let mut min_y = 100;
+        let mut max_y = -1;
+        for pos in self.all_pos() {
+            min_x = i64::min(min_x, pos.x);
+            max_x = i64::max(max_x, pos.x);
+            min_y = i64::min(min_y, pos.y);
+            max_y = i64::max(max_y, pos.y);
+        }
+        (min_x, max_x, min_y, max_y)
     }
 }
 
@@ -144,6 +176,13 @@ impl Dir {
             Dir::Left => Pos { x: -1, y: 0 },
             Dir::UpLeft => Pos { x: -1, y: 1 },
         }
+    }
+
+    pub fn is_diagonal(self) -> bool {
+        if self == Dir::Up || self == Dir::Right || self == Dir::Down || self == Dir::Left {
+            return false;
+        }
+        true
     }
 
     pub fn next(self) -> Dir {

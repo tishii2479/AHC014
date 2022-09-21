@@ -154,6 +154,73 @@ impl State {
 }
 
 #[test]
+fn test_calc_point_penalty() {
+    let n = 31;
+    let state = State::new(n, vec![]);
+
+    let square = Square::new(
+        Pos { x: 20, y: 15 },
+        Pos { x: 21, y: 16 },
+        [Pos { x: 20, y: 16 }, Pos { x: 21, y: 15 }],
+    );
+    let square2 = Square::new(
+        Pos { x: 20, y: 16 },
+        Pos { x: 21, y: 17 },
+        [Pos { x: 20, y: 17 }, Pos { x: 21, y: 16 }],
+    );
+
+    assert_eq!(state.grid.calc_point_penalty(&square).point_penalty, -4);
+    assert_eq!(state.grid.calc_point_penalty(&square2).point_penalty, 4);
+
+    let square = Square::new(
+        Pos { x: 10, y: 15 },
+        Pos { x: 12, y: 15 },
+        [Pos { x: 11, y: 16 }, Pos { x: 11, y: 14 }],
+    );
+    let square2 = Square::new(
+        Pos { x: 10, y: 16 },
+        Pos { x: 12, y: 16 },
+        [Pos { x: 11, y: 17 }, Pos { x: 11, y: 15 }],
+    );
+    let square3 = Square::new(
+        Pos { x: 9, y: 15 },
+        Pos { x: 11, y: 15 },
+        [Pos { x: 10, y: 16 }, Pos { x: 10, y: 14 }],
+    );
+
+    assert_eq!(state.grid.calc_point_penalty(&square).point_penalty, -4);
+    assert_eq!(state.grid.calc_point_penalty(&square2).point_penalty, 4);
+    assert_eq!(state.grid.calc_point_penalty(&square3).point_penalty, -4);
+
+    let square = Square::new(
+        Pos { x: 15, y: 10 },
+        Pos { x: 15, y: 8 },
+        [Pos { x: 14, y: 9 }, Pos { x: 16, y: 9 }],
+    );
+    let square2 = Square::new(
+        Pos { x: 16, y: 10 },
+        Pos { x: 16, y: 8 },
+        [Pos { x: 15, y: 9 }, Pos { x: 17, y: 9 }],
+    );
+    let square3 = Square::new(
+        Pos { x: 15, y: 9 },
+        Pos { x: 15, y: 7 },
+        [Pos { x: 14, y: 8 }, Pos { x: 16, y: 8 }],
+    );
+
+    assert_eq!(state.grid.calc_point_penalty(&square).point_penalty, 4);
+    assert_eq!(state.grid.calc_point_penalty(&square2).point_penalty, -4);
+    assert_eq!(state.grid.calc_point_penalty(&square3).point_penalty, 4);
+
+    let square = Square::new(
+        Pos { x: 10, y: 15 },
+        Pos { x: 13, y: 16 },
+        [Pos { x: 11, y: 14 }, Pos { x: 12, y: 17 }],
+    );
+    assert_eq!(state.grid.calc_point_penalty(&square).point_penalty, 0);
+}
+
+#[test]
 fn test_calc_point_closeness() {
     let n: usize = 5;
     let p = vec![Pos { x: 2, y: 2 }];
