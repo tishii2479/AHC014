@@ -1,4 +1,4 @@
-use crate::def::*; // ignore
+use crate::def::*;
 
 pub trait IState {
     fn get_score(&self, progress: f64) -> f64;

@@ -11,8 +11,6 @@ if __name__ == "__main__":
                     for line in f:
                         src.append("\t" + line)
                 src.append("}\n")
-            elif len(line) >= 10 and line[-10:] == "// ignore\n":
-                continue
             else:
                 src.append(line)
 
