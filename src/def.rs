@@ -70,14 +70,16 @@ pub enum Neighborhood {
     Add = 0,
     Delete = 1,
     ChangeSquare = 2,
+    SplitSquare = 3,
 }
 
 impl Neighborhood {
-    pub fn all() -> [Neighborhood; 3] {
+    pub fn all() -> [Neighborhood; 4] {
         [
             Neighborhood::Add,
             Neighborhood::Delete,
             Neighborhood::ChangeSquare,
+            Neighborhood::SplitSquare,
         ]
     }
 
@@ -86,6 +88,7 @@ impl Neighborhood {
             0 => Neighborhood::Add,
             1 => Neighborhood::Delete,
             2 => Neighborhood::ChangeSquare,
+            3 => Neighborhood::SplitSquare,
             _ => panic!("Neighborhood value {} is invalid.", v),
         }
     }

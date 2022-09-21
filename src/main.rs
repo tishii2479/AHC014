@@ -168,6 +168,7 @@ impl Neighborhood {
             Neighborhood::Add => self.perform_add(state),
             Neighborhood::Delete => self.perform_delete(state),
             Neighborhood::ChangeSquare => self.perform_change_square(state),
+            Neighborhood::SplitSquare => self.perform_split_square(state),
         }
     }
 
@@ -282,6 +283,10 @@ impl Neighborhood {
         }
 
         return vec![];
+    }
+
+    fn perform_split_square(&mut self, state: &mut State) -> Vec<Command> {
+        panic!("Not implemented");
     }
 }
 
