@@ -11,7 +11,6 @@ pub struct Score {
 }
 
 impl Score {
-    // TODO: remove point_count
     pub fn new() -> Score {
         Score {
             base: 0,
@@ -210,7 +209,9 @@ impl Pos {
     }
 
     pub fn dist(a: &Pos, b: &Pos) -> i64 {
-        (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y)
+        let dx = i64::abs(a.x - b.x);
+        let dy = i64::abs(a.y - b.y);
+        dx + dy
     }
 }
 

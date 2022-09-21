@@ -1,4 +1,4 @@
-use crate::def::*;
+use crate::{def::*, DEFAULT_DIST};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Grid {
@@ -112,7 +112,7 @@ impl Grid {
             if let Some(nearest_pos) = &point.nearest_points[dir.val() as usize] {
                 assert!(self.has_point(&nearest_pos));
 
-                point_closeness_diff -= Pos::dist(pos, nearest_pos);
+                point_closeness_diff -= i64::max(0, DEFAULT_DIST - Pos::dist(pos, nearest_pos));
 
                 if let Some(opposite_nearest_pos) = &point.nearest_points[dir.rev().val() as usize]
                 {
@@ -120,7 +120,10 @@ impl Grid {
                         [dir.rev().val() as usize] = Some(opposite_nearest_pos.clone());
 
                     if i < DIR_MAX / 2 {
-                        point_closeness_diff += Pos::dist(nearest_pos, opposite_nearest_pos);
+                        point_closeness_diff += i64::max(
+                            0,
+                            DEFAULT_DIST - Pos::dist(opposite_nearest_pos, nearest_pos),
+                        );
                     }
                 } else {
                     self.point(nearest_pos).as_mut().unwrap().nearest_points
@@ -147,15 +150,17 @@ impl Grid {
                     if let Some(prev_nearest_point_nearest_pos) =
                         nearest_point.nearest_points[dir.rev().val() as usize]
                     {
-                        point_closeness_diff -=
-                            Pos::dist(&nearest_pos, &prev_nearest_point_nearest_pos);
+                        point_closeness_diff -= i64::max(
+                            0,
+                            DEFAULT_DIST - Pos::dist(&prev_nearest_point_nearest_pos, &nearest_pos),
+                        );
                     }
                 }
 
                 nearest_point.nearest_points[dir.rev().val() as usize] = Some(pos.clone());
                 point.nearest_points[dir.val() as usize] = Some(nearest_pos.clone());
 
-                point_closeness_diff += Pos::dist(&nearest_pos, &pos);
+                point_closeness_diff += i64::max(0, DEFAULT_DIST - Pos::dist(&pos, &nearest_pos));
             }
         }
         point.added_info = square.clone();

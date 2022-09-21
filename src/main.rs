@@ -1,5 +1,6 @@
-const TIME_LIMIT: f64 = 3.35;
+const TIME_LIMIT: f64 = 4.95;
 
+const DEFAULT_DIST: i64 = 5;
 const DELETION_RECURSION_LIMIT: usize = 10;
 const START_TEMP: f64 = 500.;
 const END_TEMP: f64 = 0.;
@@ -81,10 +82,10 @@ impl IState for State {
     #[allow(unused_variables)]
     fn get_score(&self, progress: f64) -> f64 {
         let base_score = self.score.base as f64;
-        let point_closeness_score =
-            -self.score.point_closeness as f64 / self.points.len() as f64 * 100.;
-        // eprintln!("{}, {}", base_score, closeness_score);
-        base_score + point_closeness_score * (1. - progress)
+        let point_closeness_score = self.score.point_closeness as f64;
+        let threshold = progress * 3. * DEFAULT_DIST as f64 * self.points.len() as f64;
+        // base_score + point_closeness_score - threshold
+        base_score
     }
 
     fn perform_command(&mut self, command: &Command) -> Vec<Command> {
