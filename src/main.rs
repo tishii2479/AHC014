@@ -7,7 +7,7 @@ const END_TEMP: f64 = 0.;
 mod def; // expand
 mod framework; // expand
 mod grid; // expand
-mod state; // expand
+mod state; // expてmp
 mod util; // expand
 
 use std::{fs, io::Write};
@@ -145,8 +145,6 @@ impl ISolver for Solver {
 
             self.neighborhood_selector
                 .step(&neighborhood, adopt_new_state);
-
-            self.state.score.temporary = 0;
 
             if cfg!(debug_assertions) {
                 if loop_count % 100 == 0 {

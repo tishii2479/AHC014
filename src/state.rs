@@ -67,7 +67,6 @@ impl State {
         // スコアの更新
         self.score.base += self.weight(&square.new_pos);
         self.score.edge_length += square.size();
-        self.score.temporary = self.grid.size as i64;
 
         vec![Command::Add {
             square: square.clone(),
@@ -195,16 +194,13 @@ fn test_delete_point() {
         connect2[1].clone(),
     ];
     let mut state = State::new(n, p);
-    let mut copied_state = state.clone();
+    let copied_state = state.clone();
     let square = Square::new(new_pos.clone(), diagonal.clone(), connect.clone());
     let square2 = Square::new(new_pos2.clone(), new_pos.clone(), connect2.clone());
     state.perform_add(&square, false);
     state.perform_add(&square2, false);
     state.perform_delete(&square, &mut vec![]);
 
-    // ignore score.temporary here
-    state.score.temporary = 0;
-    copied_state.score.temporary = 0;
     assert_eq!(state, copied_state);
 }
 
@@ -294,7 +290,7 @@ fn test_change_square() {
     state.perform_command(&Command::Add {
         square: Square::new(old_pos.clone(), selected_p.clone(), connect),
     });
-    let mut copied_state = state.clone();
+    let copied_state = state.clone();
     let mut neighborhood = Neighborhood::ChangeSquare;
     let performed_commands = neighborhood.attempt_change_square(&mut state, &selected_p);
 
@@ -308,9 +304,6 @@ fn test_change_square() {
         state.reverse_command(command);
     }
 
-    // ignore score.temporary here
-    state.score.temporary = 0;
-    copied_state.score.temporary = 0;
     assert_eq!(state, copied_state);
 }
 
@@ -322,7 +315,7 @@ fn test_reverse_command() {
     let n: usize = 5;
     let p = vec![diagonal.clone(), connect[0].clone(), connect[1].clone()];
     let mut state = State::new(n, p);
-    let mut copied_state = state.clone();
+    let copied_state = state.clone();
     let square = Square::new(new_pos.clone(), diagonal.clone(), connect.clone());
 
     state.perform_command(&Command::Add {
@@ -332,16 +325,13 @@ fn test_reverse_command() {
         square: square.clone(),
     });
 
-    // ignore score.temporary here
-    state.score.temporary = 0;
-    copied_state.score.temporary = 0;
     assert_eq!(state, copied_state);
 
     state.perform_command(&Command::Add {
         square: square.clone(),
     });
 
-    let mut copied_state = state.clone();
+    let copied_state = state.clone();
     state.perform_command(&Command::Delete {
         square: square.clone(),
     });
@@ -349,9 +339,6 @@ fn test_reverse_command() {
         square: square.clone(),
     });
 
-    // ignore score.temporary here
-    state.score.temporary = 0;
-    copied_state.score.temporary = 0;
     assert_eq!(state, copied_state);
 }
 

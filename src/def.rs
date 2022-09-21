@@ -7,7 +7,6 @@ pub const DIR_MAX: usize = 8;
 pub struct Score {
     pub base: i64,
     pub edge_length: i64,
-    pub temporary: i64,
 }
 
 impl Score {
@@ -15,7 +14,6 @@ impl Score {
         Score {
             base: 0,
             edge_length: 0,
-            temporary: 0,
         }
     }
 
@@ -23,7 +21,6 @@ impl Score {
     pub fn get_score(&self, progress: f64) -> f64 {
         // self.base as f64 * progress - self.edge_length as f64 * (1. - progress) * 10.
         // self.base as f64
-        // - self.temporary as f64 * (1. - progress)
         // - self.edge_length as f64 * (1. - progress) * 5.
         self.base as f64
     }
