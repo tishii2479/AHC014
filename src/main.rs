@@ -7,16 +7,16 @@ const END_TEMP: f64 = 0.;
 mod def; // expand
 mod framework; // expand
 mod grid; // expand
-mod lib; // expand
 mod state; // expand
+mod util; // expand
 
 use std::{fs, io::Write};
 
 use def::*;
 use framework::*;
-use lib::*;
 use proconio::input;
 use state::*;
+use util::*;
 
 struct NeighborhoodSelector {
     total_cnt: Vec<i64>,
