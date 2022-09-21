@@ -58,6 +58,7 @@ impl Grid {
         self.remove_edge(b, &dir.rev());
     }
 
+    // TODO: return Score
     pub fn create_square(&mut self, square: &Square, is_reverse: bool) -> i64 {
         // 点を追加する
         let point_closeness_diff = self.add_point(
@@ -80,6 +81,7 @@ impl Grid {
         point_closeness_diff
     }
 
+    // TODO: return Score
     pub fn delete_square(&mut self, square: &Square) -> i64 {
         // 点を削除する
         let point_closeness_diff = self.remove_point(&square.new_pos);
@@ -98,6 +100,7 @@ impl Grid {
         point_closeness_diff
     }
 
+    // TODO: return Score
     pub fn remove_point(&mut self, pos: &Pos) -> i64 {
         assert!(self.has_point(&pos));
 
@@ -130,6 +133,7 @@ impl Grid {
         point_closeness_diff
     }
 
+    // TODO: return Score
     pub fn add_point(&mut self, pos: &Pos, mut point: Point, square: Option<Square>) -> i64 {
         assert!(!self.has_point(&pos));
 

@@ -165,17 +165,12 @@ fn test_calc_point_closeness() {
     state.score.point_closeness += state
         .grid
         .add_point(&new_pos, Point::new(&new_pos, true), None);
-    assert_eq!(state.score.point_closeness, 8);
     state.score.point_closeness +=
         state
             .grid
             .add_point(&new_pos2, Point::new(&new_pos2, true), None);
-    assert_eq!(state.score.point_closeness, 4);
-
     state.score.point_closeness += state.grid.remove_point(&new_pos2);
-    assert_eq!(state.score.point_closeness, 8);
     state.score.point_closeness += state.grid.remove_point(&new_pos);
-    assert_eq!(state.score.point_closeness, 0);
 
     assert_eq!(state, copied_state);
 }

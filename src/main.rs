@@ -1,13 +1,14 @@
 const TIME_LIMIT: f64 = 3.35;
 
 const DELETION_RECURSION_LIMIT: usize = 10;
+const DEFAULT_DIST: i64 = 50;
 const START_TEMP: f64 = 500.;
 const END_TEMP: f64 = 0.;
 
 mod def; // expand
 mod framework; // expand
 mod grid; // expand
-mod state; // expてmp
+mod state; // expand
 mod util; // expand
 
 use std::{fs, io::Write};
@@ -79,7 +80,11 @@ impl IOptimizer for Optimizer {
 
 impl IState for State {
     fn get_score(&self, progress: f64) -> f64 {
-        self.score.get_score(progress)
+        let base_score = self.score.base as f64;
+        let closeness_score =
+            (self.points.len() as i64 * DEFAULT_DIST - self.score.point_closeness) as f64 / 8.;
+        // eprintln!("{}, {}", base_score, closeness_score);
+        base_score + closeness_score * (1. - progress)
     }
 
     fn perform_command(&mut self, command: &Command) -> Vec<Command> {
