@@ -7,6 +7,7 @@ pub const DIR_MAX: usize = 8;
 pub struct Score {
     pub base: i64,
     pub edge_length: i64,
+    pub point_closeness: i64,
 }
 
 impl Score {
@@ -14,6 +15,7 @@ impl Score {
         Score {
             base: 0,
             edge_length: 0,
+            point_closeness: 0,
         }
     }
 
@@ -22,7 +24,7 @@ impl Score {
         // self.base as f64 * progress - self.edge_length as f64 * (1. - progress) * 10.
         // self.base as f64
         // - self.edge_length as f64 * (1. - progress) * 5.
-        self.base as f64
+        self.base as f64 - self.point_closeness as f64 * (1. - progress)
     }
 }
 
@@ -215,7 +217,7 @@ impl Pos {
     }
 
     pub fn dist(a: &Pos, b: &Pos) -> i64 {
-        i64::abs(a.x - b.x) + i64::abs(a.y - b.y)
+        (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y)
     }
 }
 

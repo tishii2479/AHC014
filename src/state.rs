@@ -24,7 +24,7 @@ impl State {
             score: Score::new(),
         };
         for pos in p.iter() {
-            state.grid.add_point(pos, Point::new(&pos, false), None);
+            state.score.point_closeness += state.grid.add_point(pos, Point::new(&pos, false), None);
             state.points.push(pos.clone());
             state.score.base += state.weight(&pos);
         }
@@ -59,7 +59,7 @@ impl State {
         //     &square.new_pos, &square.connect[0], square.diagonal, &square.connect[1]
         // );
 
-        self.grid.create_square(&square, is_reverse);
+        self.score.point_closeness += self.grid.create_square(&square, is_reverse);
 
         self.squares.push(square.clone());
         self.points.push(square.new_pos.clone());
@@ -101,7 +101,7 @@ impl State {
             self.perform_delete(&created_square, performed_commands);
         }
 
-        self.grid.delete_square(&square);
+        self.score.point_closeness += self.grid.delete_square(&square);
 
         // FIXME: O(n)
         self.squares
@@ -154,6 +154,33 @@ impl State {
 }
 
 #[test]
+fn test_calc_point_closeness() {
+    let n: usize = 5;
+    let p = vec![Pos { x: 2, y: 2 }];
+    let mut state = State::new(n, p);
+    let new_pos = Pos { x: 0, y: 0 };
+    let new_pos2 = Pos { x: 1, y: 1 };
+
+    let copied_state = state.clone();
+    state.score.point_closeness += state
+        .grid
+        .add_point(&new_pos, Point::new(&new_pos, true), None);
+    assert_eq!(state.score.point_closeness, 8);
+    state.score.point_closeness +=
+        state
+            .grid
+            .add_point(&new_pos2, Point::new(&new_pos2, true), None);
+    assert_eq!(state.score.point_closeness, 4);
+
+    state.score.point_closeness += state.grid.remove_point(&new_pos2);
+    assert_eq!(state.score.point_closeness, 8);
+    state.score.point_closeness += state.grid.remove_point(&new_pos);
+    assert_eq!(state.score.point_closeness, 0);
+
+    assert_eq!(state, copied_state);
+}
+
+#[test]
 fn test_add_point_on_square_edge() {
     let diagonal = Pos { x: 0, y: 0 };
     let connect: [Pos; 2] = [Pos { x: 2, y: 0 }, Pos { x: 0, y: 2 }];
@@ -179,7 +206,23 @@ fn test_add_point_on_square_edge() {
 }
 
 #[test]
-fn test_delete_point() {
+fn test_perform_single_delete() {
+    let diagonal = Pos { x: 0, y: 0 };
+    let connect: [Pos; 2] = [Pos { x: 2, y: 0 }, Pos { x: 0, y: 2 }];
+    let new_pos = Pos { x: 2, y: 2 };
+    let n: usize = 5;
+    let p = vec![diagonal.clone(), connect[0].clone(), connect[1].clone()];
+    let mut state = State::new(n, p);
+    let copied_state = state.clone();
+    let square = Square::new(new_pos.clone(), diagonal.clone(), connect.clone());
+    state.perform_add(&square, false);
+    state.perform_delete(&square, &mut vec![]);
+
+    assert_eq!(state, copied_state);
+}
+
+#[test]
+fn test_perform_recursive_delete() {
     let diagonal = Pos { x: 0, y: 0 };
     let connect: [Pos; 2] = [Pos { x: 2, y: 0 }, Pos { x: 0, y: 2 }];
     let connect2: [Pos; 2] = [Pos { x: 2, y: 4 }, Pos { x: 4, y: 2 }];
@@ -197,15 +240,22 @@ fn test_delete_point() {
     let copied_state = state.clone();
     let square = Square::new(new_pos.clone(), diagonal.clone(), connect.clone());
     let square2 = Square::new(new_pos2.clone(), new_pos.clone(), connect2.clone());
+    eprintln!("{}", state.score.point_closeness);
     state.perform_add(&square, false);
+    eprintln!("{}", state.score.point_closeness);
     state.perform_add(&square2, false);
+    eprintln!("{}", state.score.point_closeness);
     state.perform_delete(&square, &mut vec![]);
+    eprintln!(
+        "{} {}",
+        state.score.point_closeness, copied_state.score.point_closeness
+    );
 
     assert_eq!(state, copied_state);
 }
 
 #[test]
-fn test_add_point() {
+fn test_perform_add() {
     let diagonal = Pos { x: 0, y: 0 };
     let connect: [Pos; 2] = [Pos { x: 2, y: 0 }, Pos { x: 0, y: 2 }];
     let other = Pos { x: 2, y: 4 };
