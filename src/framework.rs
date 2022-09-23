@@ -1,4 +1,5 @@
-use crate::def::*;
+use crate::def::Command;
+use crate::neighborhood::Neighborhood;
 
 pub trait IState {
     fn get_score(&self, progress: f64) -> f64;

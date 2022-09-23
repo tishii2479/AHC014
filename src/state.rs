@@ -1,7 +1,5 @@
-use crate::def::*;
-#[allow(unused_imports)]
-use crate::framework::IState;
 use crate::grid::*;
+use crate::*;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct State {
@@ -146,32 +144,6 @@ impl State {
         let c = ((self.grid.size - 1) / 2) as i64;
         (pos.y as i64 - c) * (pos.y as i64 - c) + (pos.x as i64 - c) * (pos.x as i64 - c) + 1
     }
-}
-
-#[test]
-fn test_split_square() {
-    let diagonal = Pos { x: 0, y: 0 };
-    let connect: [Pos; 2] = [Pos { x: 2, y: 0 }, Pos { x: 0, y: 2 }];
-    let new_pos = Pos { x: 2, y: 2 };
-    let add_pos = Pos { x: 1, y: 0 };
-    let connect2: [Pos; 2] = [Pos { x: 1, y: 0 }, Pos { x: 0, y: 2 }];
-    let new_pos2 = Pos { x: 1, y: 2 };
-    let n: usize = 5;
-    let p = vec![diagonal.clone(), connect[0].clone(), connect[1].clone()];
-
-    let square = Square::new(new_pos.clone(), diagonal.clone(), connect.clone());
-    let mut state = State::new(n, p);
-    state.perform_add(&square, false);
-    state
-        .grid
-        .add_point(&add_pos, Point::new(&add_pos, true), None);
-
-    let mut split_square = Neighborhood::SplitSquare;
-    split_square.attempt_split_square(&mut state, &square);
-
-    let mut square = Square::new(new_pos2.clone(), diagonal.clone(), connect2.clone());
-    square.id = state.squares[0].id;
-    assert_eq!(state.squares[0], square);
 }
 
 #[allow(dead_code)]
@@ -418,46 +390,6 @@ fn test_perform_add() {
         }
         None => assert!(false),
     }
-}
-
-#[test]
-fn test_change_square() {
-    let selected_p = Pos { x: 2, y: 2 };
-    let connect: [Pos; 2] = [Pos { x: 2, y: 0 }, Pos { x: 0, y: 2 }];
-    let connect2: [Pos; 2] = [Pos { x: 2, y: 0 }, Pos { x: 4, y: 2 }];
-    let old_pos = Pos { x: 0, y: 0 };
-    let new_pos = Pos { x: 4, y: 0 };
-    let n: usize = 5;
-    let p = vec![
-        selected_p.clone(),
-        connect[0].clone(),
-        connect[1].clone(),
-        connect2[1].clone(),
-    ];
-
-    let mut state = State::new(n, p);
-    let mut other_state = state.clone();
-    other_state.perform_command(&Command::Add {
-        square: Square::new(new_pos.clone(), selected_p.clone(), connect2),
-    });
-    state.perform_command(&Command::Add {
-        square: Square::new(old_pos.clone(), selected_p.clone(), connect),
-    });
-    let copied_state = state.clone();
-    let mut neighborhood = Neighborhood::ChangeSquare;
-    let performed_commands = neighborhood.attempt_change_square(&mut state, &selected_p);
-
-    assert_eq!(performed_commands.len(), 2);
-    // FXIME: Squareのidは異なってしまう
-    // assert_eq!(state, other_state);
-    assert!(!state.grid.has_point(&old_pos));
-    assert!(state.grid.has_point(&new_pos));
-
-    for command in performed_commands.iter().rev() {
-        state.reverse_command(command);
-    }
-
-    assert_eq!(state, copied_state);
 }
 
 #[test]

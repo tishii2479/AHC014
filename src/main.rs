@@ -9,6 +9,7 @@ const END_TEMP: f64 = 0.;
 mod def; // expand
 mod framework; // expand
 mod grid; // expand
+mod neighborhood; // expand
 mod state; // expand
 mod util; // expand
 
@@ -16,6 +17,7 @@ use std::{fs, io::Write};
 
 use def::*;
 use framework::*;
+use neighborhood::*;
 use proconio::input;
 use state::*;
 use util::*;
@@ -144,7 +146,7 @@ impl ISolver for Solver {
         let mut loop_count = 0;
         while time::elapsed_seconds() < time_limit {
             let progress = time::elapsed_seconds() / time_limit;
-            let mut neighborhood = self.neighborhood_selector.select();
+            let neighborhood = self.neighborhood_selector.select();
 
             let current_score = self.state.get_score(progress);
 
@@ -177,180 +179,6 @@ impl ISolver for Solver {
         // if cfg!(debug_assertions) {
         eprintln!("loop_count: {}", loop_count);
         // }
-    }
-}
-
-impl Neighborhood {
-    fn perform(&mut self, state: &mut State) -> Vec<Command> {
-        match self {
-            Neighborhood::Add => self.perform_add(state),
-            Neighborhood::Delete => self.perform_delete(state),
-            Neighborhood::ChangeSquare => self.perform_change_square(state),
-            Neighborhood::SplitSquare => self.perform_split_square(state),
-        }
-    }
-
-    fn perform_add(&mut self, state: &mut State) -> Vec<Command> {
-        let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
-        self.attempt_add(state, &selected_p, None)
-    }
-
-    fn attempt_add(
-        &mut self,
-        state: &mut State,
-        pos: &Pos,
-        ignore_dir: Option<&Dir>,
-    ) -> Vec<Command> {
-        assert!(state.grid.has_point(&pos));
-        let point = state.grid.point(&pos).as_ref().unwrap().clone();
-        for _ in 0..DIR_MAX {
-            let i = rnd::gen_range(0, DIR_MAX);
-            let diagonal_dir = Dir::from_i64(i as i64);
-            if let Some(ignore_dir) = ignore_dir {
-                if ignore_dir == &diagonal_dir {
-                    continue;
-                }
-            }
-            let performed_commands = self.attempt_add_dir(state, &point, &diagonal_dir);
-            if performed_commands.len() > 0 {
-                return performed_commands;
-            }
-        }
-        return vec![];
-    }
-
-    fn attempt_add_dir(&mut self, state: &mut State, point: &Point, dir: &Dir) -> Vec<Command> {
-        let dir_next = dir.next();
-        let dir_prev = dir.prev();
-
-        if let (Some(pos_prev), Some(pos_next)) = (
-            &point.nearest_points[dir_prev.val() as usize],
-            &point.nearest_points[dir_next.val() as usize],
-        ) {
-            let new_pos = pos_next + &(pos_prev - &point.pos);
-
-            if !state.grid.is_valid(&new_pos) {
-                return vec![];
-            }
-            if !state.grid.has_point(&point.pos)
-                || !state.grid.has_point(&pos_prev)
-                || !state.grid.has_point(&pos_next)
-            {
-                return vec![];
-            }
-
-            let connect: [Pos; 2] = [pos_prev.clone(), pos_next.clone()];
-            let square = Square::new(new_pos, point.pos.clone(), connect);
-
-            let performed_commands = state.perform_command(&Command::Add { square });
-            if performed_commands.len() > 0 {
-                return performed_commands;
-            }
-        }
-
-        vec![]
-    }
-
-    fn perform_delete(&mut self, state: &mut State) -> Vec<Command> {
-        let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
-        self.attemp_delete(state, &selected_p)
-    }
-
-    fn attemp_delete(&mut self, state: &mut State, pos: &Pos) -> Vec<Command> {
-        assert!(state.grid.has_point(&pos));
-        let point = state.grid.point(&pos).as_ref().unwrap().clone();
-        if let Some(added_info) = point.added_info {
-            return state.perform_command(&Command::Delete { square: added_info });
-        }
-        return vec![];
-    }
-
-    fn perform_change_square(&mut self, state: &mut State) -> Vec<Command> {
-        // 四角を作っている点を探す
-        let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
-        self.attempt_change_square(state, &selected_p)
-    }
-
-    fn attempt_change_square(&mut self, state: &mut State, pos: &Pos) -> Vec<Command> {
-        assert!(state.grid.has_point(&pos));
-        let point = state.grid.point(&pos).as_ref().unwrap().clone();
-
-        for _ in 0..DIR_MAX {
-            let i = rnd::gen_range(0, DIR_MAX);
-            let front = Dir::from_i64(i as i64);
-            let left = front.prev().prev();
-            if state.grid.has_edge(&pos, &left) && state.grid.has_edge(&pos, &front) {
-                let left_pos = point.nearest_points[left.val() as usize].as_ref().unwrap();
-                let front_pos = point.nearest_points[front.val() as usize].as_ref().unwrap();
-                let left_front_pos = &(&(left_pos + front_pos) - pos);
-                if !state.grid.is_valid(left_front_pos) {
-                    continue;
-                }
-                if let Some(left_front_point) = state.grid.point(left_front_pos) {
-                    if !left_front_point.is_added {
-                        continue;
-                    }
-                    let added_square = left_front_point.added_info.as_ref().unwrap().clone();
-                    let mut performed_commands = state.perform_command(&Command::Delete {
-                        square: added_square,
-                    });
-
-                    // 四角を消せなかったら中止
-                    if performed_commands.len() == 0 {
-                        return performed_commands;
-                    }
-
-                    // 再帰的にposの点も消してしまった時は中止
-                    if !state.grid.has_point(&pos) {
-                        return performed_commands;
-                    }
-
-                    performed_commands.append(&mut self.attempt_add(
-                        state,
-                        &pos,
-                        Some(&front.prev()),
-                    ));
-                    return performed_commands;
-                }
-            }
-        }
-
-        return vec![];
-    }
-
-    fn perform_split_square(&mut self, state: &mut State) -> Vec<Command> {
-        if state.squares.len() == 0 {
-            return vec![];
-        }
-        let selected_square = state.squares[rnd::gen_range(0, state.squares.len()) as usize];
-        self.attempt_split_square(state, &selected_square)
-    }
-
-    fn attempt_split_square(&mut self, state: &mut State, square: &Square) -> Vec<Command> {
-        let diagonal_point = state.grid.point(&square.diagonal).as_ref().unwrap().clone();
-        let dir1 = Pos::get_dir(&square.diagonal, &square.connect[0]);
-        let dir2 = Pos::get_dir(&square.diagonal, &square.connect[1]);
-
-        if diagonal_point.nearest_points[dir1.val() as usize] != Some(square.connect[0])
-            || diagonal_point.nearest_points[dir2.val() as usize] != Some(square.connect[1])
-        {
-            let mut performed_commands = state.perform_command(&Command::Delete {
-                square: square.clone(),
-            });
-
-            if performed_commands.len() == 0 {
-                return vec![];
-            }
-            let dir = Dir::from_i64(
-                (Pos::get_dir(&square.diagonal, &square.connect[0]).val()
-                    + Pos::get_dir(&square.diagonal, &square.connect[1]).val())
-                    / 2,
-            );
-            performed_commands.append(&mut self.attempt_add_dir(state, &diagonal_point, &dir));
-            return performed_commands;
-        }
-
-        vec![]
     }
 }
 

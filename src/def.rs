@@ -100,35 +100,6 @@ pub enum Command {
     Delete { square: Square },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Neighborhood {
-    Add = 0,
-    Delete = 1,
-    ChangeSquare = 2,
-    SplitSquare = 3,
-}
-
-impl Neighborhood {
-    pub fn all() -> [Neighborhood; 4] {
-        [
-            Neighborhood::Add,
-            Neighborhood::Delete,
-            Neighborhood::ChangeSquare,
-            Neighborhood::SplitSquare,
-        ]
-    }
-
-    pub fn from_i64(v: i64) -> Neighborhood {
-        match v {
-            0 => Neighborhood::Add,
-            1 => Neighborhood::Delete,
-            2 => Neighborhood::ChangeSquare,
-            3 => Neighborhood::SplitSquare,
-            _ => panic!("Neighborhood value {} is invalid.", v),
-        }
-    }
-}
-
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Dir {
     Up = 0,
