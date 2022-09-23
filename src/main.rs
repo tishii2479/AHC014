@@ -85,16 +85,15 @@ impl IState for State {
         let base_score = self.score.base as f64;
         let point_closeness_score = self.score.point_closeness as f64;
         let threshold = progress * 3. * DEFAULT_DIST as f64 * self.points.len() as f64;
-        let point_penalty_score =
-            (self.score.point_penalty * POINT_PENALTY) as f64 * (1. - progress);
+        let point_penalty_score = (self.score.point_penalty * POINT_PENALTY) as f64;
         // base_score + point_closeness_score - threshold
         // eprintln!(
         //     "{} {}",
         //     base_score,
         //     self.score.point_penalty * POINT_PENALTY
         // );
-        // base_score - point_penalty_score
-        base_score
+        // base_score + point_penalty_score * (1. - progress)
+        base_score + point_penalty_score
     }
 
     fn perform_command(&mut self, command: &Command) -> Vec<Command> {
@@ -280,6 +279,11 @@ impl Neighborhood {
                         square: added_square.clone(),
                     });
 
+                    // 四角を消せなかったら中止
+                    if performed_commands.len() == 0 {
+                        return performed_commands;
+                    }
+
                     // 再帰的にposの点も消してしまった時は中止
                     if !state.grid.has_point(&pos) {
                         return performed_commands;
@@ -374,11 +378,13 @@ fn main() {
     eprintln!("run_time: {}", time::elapsed_seconds());
 }
 
+// TODO: move to utils
 fn calc_weight(n: i64, pos: &Pos) -> i64 {
     let c = ((n - 1) / 2) as i64;
     (pos.y as i64 - c) * (pos.y as i64 - c) + (pos.x as i64 - c) * (pos.x as i64 - c) + 1
 }
 
+// TODO: move to utils
 fn calc_real_score(n: usize, m: usize, score: i64) -> i64 {
     let mut s = 0;
     for i in 0..n {

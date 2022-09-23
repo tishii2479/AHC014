@@ -100,7 +100,7 @@ pub enum Command {
     Delete { square: Square },
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Neighborhood {
     Add = 0,
     Delete = 1,
