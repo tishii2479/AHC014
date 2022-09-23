@@ -68,31 +68,33 @@ impl Grid {
             for pos in square.all_pos() {
                 let xd = pos.x - c;
                 let yd = pos.y - c;
+                let weight = Pos::weight(&Pos { x: c, y: c }, pos);
                 let is_top_bottom = (xd <= yd && -xd <= yd) || (xd >= yd && -xd >= yd);
                 let is_side_points = pos.x == min_x || pos.x == max_x;
                 if is_top_bottom {
                     if pos.x % 2 == if is_side_points { 0 } else { 1 } {
-                        score.point_penalty += 1;
+                        score.point_penalty += weight;
                     } else {
-                        score.point_penalty -= 2;
+                        score.point_penalty -= weight * 2;
                     }
                 } else {
                     if pos.y % 2 == if is_side_points { 0 } else { 1 } {
-                        score.point_penalty += 1;
+                        score.point_penalty += weight;
                     } else {
-                        score.point_penalty -= 2;
+                        score.point_penalty -= weight * 2;
                     }
                 }
             }
         } else {
             for pos in square.all_pos() {
                 let p = pos.x + pos.y;
+                let weight = Pos::weight(&Pos { x: c, y: c }, pos);
                 let is_left_bottom_or_right_top =
                     (pos.x == min_x && pos.y == min_y) || (pos.x == max_x && pos.y == max_y);
                 if p % 2 == if is_left_bottom_or_right_top { 0 } else { 1 } {
-                    score.point_penalty += 1;
+                    score.point_penalty += weight;
                 } else {
-                    score.point_penalty -= 2;
+                    score.point_penalty -= weight * 2;
                 }
             }
         }
