@@ -199,6 +199,7 @@ impl Neighborhood {
         ignore_dir: Option<&Dir>,
     ) -> Vec<Command> {
         assert!(state.grid.has_point(&pos));
+        let point = state.grid.point(&pos).as_ref().unwrap().clone();
         for _ in 0..DIR_MAX {
             let i = rnd::gen_range(0, DIR_MAX);
             let diagonal_dir = Dir::from_i64(i as i64);
@@ -207,7 +208,7 @@ impl Neighborhood {
                     continue;
                 }
             }
-            let performed_commands = self.attempt_add_dir(state, &pos, &diagonal_dir);
+            let performed_commands = self.attempt_add_dir(state, &point, &diagonal_dir);
             if performed_commands.len() > 0 {
                 return performed_commands;
             }
@@ -215,9 +216,7 @@ impl Neighborhood {
         return vec![];
     }
 
-    fn attempt_add_dir(&mut self, state: &mut State, pos: &Pos, dir: &Dir) -> Vec<Command> {
-        let point = state.grid.point(&pos).as_ref().unwrap().clone();
-
+    fn attempt_add_dir(&mut self, state: &mut State, point: &Point, dir: &Dir) -> Vec<Command> {
         let dir_next = dir.next();
         let dir_prev = dir.prev();
 
@@ -225,17 +224,20 @@ impl Neighborhood {
             &point.nearest_points[dir_prev.val() as usize],
             &point.nearest_points[dir_next.val() as usize],
         ) {
-            let new_pos = pos_next + &(pos_prev - &pos);
+            let new_pos = pos_next + &(pos_prev - &point.pos);
 
             if !state.grid.is_valid(&new_pos) {
                 return vec![];
             }
-            if state.grid.has_point(&new_pos) {
+            if !state.grid.has_point(&point.pos)
+                || !state.grid.has_point(&pos_prev)
+                || !state.grid.has_point(&pos_next)
+            {
                 return vec![];
             }
 
             let connect: [Pos; 2] = [pos_prev.clone(), pos_next.clone()];
-            let square = Square::new(new_pos, pos.clone(), connect);
+            let square = Square::new(new_pos, point.pos.clone(), connect);
 
             let performed_commands = state.perform_command(&Command::Add { square });
             if performed_commands.len() > 0 {
@@ -342,7 +344,7 @@ impl Neighborhood {
                     + Pos::get_dir(&square.diagonal, &square.connect[1]).val())
                     / 2,
             );
-            performed_commands.append(&mut self.attempt_add_dir(state, &square.diagonal, &dir));
+            performed_commands.append(&mut self.attempt_add_dir(state, &diagonal_point, &dir));
             return performed_commands;
         }
 
