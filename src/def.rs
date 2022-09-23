@@ -84,7 +84,7 @@ impl Square {
         let mut max_x = -1;
         let mut min_y = 100;
         let mut max_y = -1;
-        for pos in self.all_pos() {
+        for pos in &self.all_pos() {
             min_x = i64::min(min_x, pos.x);
             max_x = i64::max(max_x, pos.x);
             min_y = i64::min(min_y, pos.y);

@@ -65,7 +65,7 @@ impl Grid {
         let (min_x, max_x, min_y, max_y) = square.get_corners();
         let c = (self.size as i64 - 1) / 2;
         if is_diagonal {
-            for pos in square.all_pos() {
+            for pos in &square.all_pos() {
                 let xd = pos.x - c;
                 let yd = pos.y - c;
                 let weight = Pos::weight(&Pos { x: c, y: c }, pos);
@@ -86,7 +86,7 @@ impl Grid {
                 }
             }
         } else {
-            for pos in square.all_pos() {
+            for pos in &square.all_pos() {
                 let p = pos.x + pos.y;
                 let weight = Pos::weight(&Pos { x: c, y: c }, pos);
                 let is_left_bottom_or_right_top =

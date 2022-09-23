@@ -100,8 +100,8 @@ impl IState for State {
         // );
         // base_score + point_penalty_score * (1. - progress)
         // base_score + point_penalty_score
-        // point_penalty_score
-        base_score
+        point_penalty_score
+        // base_score
     }
 
     fn perform_command(&mut self, command: &Command) -> Vec<Command> {
