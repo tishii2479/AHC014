@@ -52,9 +52,12 @@ impl INeighborhoodSelector for NeighborhoodSelector {
         if p < 0.1 {
             return Neighborhood::Delete;
         }
-        if p < 0.15 {
-            return Neighborhood::SplitSquare;
-        }
+        // if p < 0.15 {
+        //     return Neighborhood::SplitSquare;
+        // }
+        // if p < 0.20 {
+        //     return Neighborhood::ChangeSquare;
+        // }
         return Neighborhood::Add;
     }
 
@@ -283,13 +286,13 @@ impl Neighborhood {
                 if !state.grid.is_valid(left_front_pos) {
                     continue;
                 }
-                if let Some(left_front_point) = state.grid.point(left_front_pos).clone() {
+                if let Some(left_front_point) = state.grid.point(left_front_pos) {
                     if !left_front_point.is_added {
                         continue;
                     }
-                    let added_square = left_front_point.added_info.as_ref().unwrap();
+                    let added_square = left_front_point.added_info.as_ref().unwrap().clone();
                     let mut performed_commands = state.perform_command(&Command::Delete {
-                        square: added_square.clone(),
+                        square: added_square,
                     });
 
                     // 四角を消せなかったら中止
@@ -316,7 +319,6 @@ impl Neighborhood {
     }
 
     fn perform_split_square(&mut self, state: &mut State) -> Vec<Command> {
-        // eprintln!("{:?}", state.squares);
         if state.squares.len() == 0 {
             return vec![];
         }

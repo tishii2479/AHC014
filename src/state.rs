@@ -54,11 +54,6 @@ impl State {
             return vec![];
         }
 
-        // eprintln!(
-        //     "Connected: {:?}, {:?}, {:?}, {:?}",
-        //     &square.new_pos, &square.connect[0], square.diagonal, &square.connect[1]
-        // );
-
         self.score += &self.grid.create_square(&square, is_reverse);
 
         self.squares.push(square.clone());
