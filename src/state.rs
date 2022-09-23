@@ -154,6 +154,33 @@ impl State {
 }
 
 #[test]
+fn test_split_square() {
+    let diagonal = Pos { x: 0, y: 0 };
+    let connect: [Pos; 2] = [Pos { x: 2, y: 0 }, Pos { x: 0, y: 2 }];
+    let new_pos = Pos { x: 2, y: 2 };
+    let add_pos = Pos { x: 1, y: 0 };
+    let connect2: [Pos; 2] = [Pos { x: 1, y: 0 }, Pos { x: 0, y: 2 }];
+    let new_pos2 = Pos { x: 1, y: 2 };
+    let n: usize = 5;
+    let p = vec![diagonal.clone(), connect[0].clone(), connect[1].clone()];
+
+    let square = Square::new(new_pos.clone(), diagonal.clone(), connect.clone());
+    let mut state = State::new(n, p);
+    state.perform_add(&square, false);
+    state
+        .grid
+        .add_point(&add_pos, Point::new(&add_pos, true), None);
+
+    let mut split_square = Neighborhood::SplitSquare;
+    split_square.attempt_split_square(&mut state, &square);
+
+    let mut square = Square::new(new_pos2.clone(), diagonal.clone(), connect2.clone());
+    square.id = state.squares[0].id;
+    assert_eq!(state.squares[0], square);
+}
+
+#[allow(dead_code)]
+// #[test]
 fn test_calc_point_penalty() {
     let n = 31;
     let state = State::new(n, vec![]);

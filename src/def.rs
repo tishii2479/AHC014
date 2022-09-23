@@ -40,7 +40,7 @@ impl ops::SubAssign<&Score> for Score {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Copy)]
 pub struct Square {
     pub id: i64,
     pub new_pos: Pos,
