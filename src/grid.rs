@@ -74,13 +74,13 @@ impl Grid {
                     if pos.x % 2 == if is_side_points { 0 } else { 1 } {
                         score.point_penalty += 1;
                     } else {
-                        // score.point_penalty -= 1;
+                        score.point_penalty -= 2;
                     }
                 } else {
                     if pos.y % 2 == if is_side_points { 0 } else { 1 } {
                         score.point_penalty += 1;
                     } else {
-                        // score.point_penalty -= 1;
+                        score.point_penalty -= 2;
                     }
                 }
             }
@@ -92,7 +92,7 @@ impl Grid {
                 if p % 2 == if is_left_bottom_or_right_top { 0 } else { 1 } {
                     score.point_penalty += 1;
                 } else {
-                    // score.point_penalty -= 1;
+                    score.point_penalty -= 2;
                 }
             }
         }

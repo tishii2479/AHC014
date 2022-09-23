@@ -259,9 +259,11 @@ impl Pos {
     }
 
     pub fn dist(a: &Pos, b: &Pos) -> i64 {
-        let dx = i64::abs(a.x - b.x);
-        let dy = i64::abs(a.y - b.y);
-        dx + dy
+        i64::abs(a.x - b.x) + i64::abs(a.y - b.y)
+    }
+
+    pub fn weight(a: &Pos, b: &Pos) -> i64 {
+        (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y)
     }
 }
 

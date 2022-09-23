@@ -83,9 +83,10 @@ impl IState for State {
     #[allow(unused_variables)]
     fn get_score(&self, progress: f64) -> f64 {
         let base_score = self.score.base as f64;
-        let point_closeness_score = self.score.point_closeness as f64;
-        let threshold = progress * 3. * DEFAULT_DIST as f64 * self.points.len() as f64;
+        // let point_closeness_score = self.score.point_closeness as f64;
+        // let threshold = progress * 3. * DEFAULT_DIST as f64 * self.points.len() as f64;
         let point_penalty_score = (self.score.point_penalty * POINT_PENALTY) as f64;
+        // let edge_length_score = self.score.edge_length as f64 * 100.;
         // base_score + point_closeness_score - threshold
         // eprintln!(
         //     "{} {}",
@@ -93,7 +94,9 @@ impl IState for State {
         //     self.score.point_penalty * POINT_PENALTY
         // );
         // base_score + point_penalty_score * (1. - progress)
-        base_score + point_penalty_score
+        // base_score + point_penalty_score
+        point_penalty_score
+        // base_score
     }
 
     fn perform_command(&mut self, command: &Command) -> Vec<Command> {
@@ -376,28 +379,4 @@ fn main() {
 
     solver.output_statistics(n, m);
     eprintln!("run_time: {}", time::elapsed_seconds());
-}
-
-// TODO: move to utils
-fn calc_weight(n: i64, pos: &Pos) -> i64 {
-    let c = ((n - 1) / 2) as i64;
-    (pos.y as i64 - c) * (pos.y as i64 - c) + (pos.x as i64 - c) * (pos.x as i64 - c) + 1
-}
-
-// TODO: move to utils
-fn calc_real_score(n: usize, m: usize, score: i64) -> i64 {
-    let mut s = 0;
-    for i in 0..n {
-        for j in 0..n {
-            s += calc_weight(
-                n as i64,
-                &Pos {
-                    x: i as i64,
-                    y: j as i64,
-                },
-            );
-        }
-    }
-    let result = 1e6 * (n as f64 * n as f64) * score as f64 / (m as f64 * s as f64);
-    result.round() as i64
 }

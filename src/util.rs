@@ -1,3 +1,5 @@
+use crate::Pos;
+
 pub mod rnd {
     #[allow(unused)]
     static mut S: usize = 88172645463325252;
@@ -46,4 +48,26 @@ pub mod time {
             t - START
         }
     }
+}
+
+pub fn calc_weight(n: i64, pos: &Pos) -> i64 {
+    let c = ((n - 1) / 2) as i64;
+    (pos.y as i64 - c) * (pos.y as i64 - c) + (pos.x as i64 - c) * (pos.x as i64 - c) + 1
+}
+
+pub fn calc_real_score(n: usize, m: usize, score: i64) -> i64 {
+    let mut s = 0;
+    for i in 0..n {
+        for j in 0..n {
+            s += calc_weight(
+                n as i64,
+                &Pos {
+                    x: i as i64,
+                    y: j as i64,
+                },
+            );
+        }
+    }
+    let result = 1e6 * (n as f64 * n as f64) * score as f64 / (m as f64 * s as f64);
+    result.round() as i64
 }
