@@ -6,23 +6,29 @@ pub const DIR_MAX: usize = 8;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Score {
     pub base: i64,
+    pub edge_length: i64,
 }
 
 impl Score {
     pub fn new() -> Score {
-        Score { base: 0 }
+        Score {
+            base: 0,
+            edge_length: 0,
+        }
     }
 }
 
 impl ops::AddAssign<&Score> for Score {
     fn add_assign(&mut self, rhs: &Score) {
         self.base += rhs.base;
+        self.edge_length += rhs.edge_length;
     }
 }
 
 impl ops::SubAssign<&Score> for Score {
     fn sub_assign(&mut self, rhs: &Score) {
         self.base -= rhs.base;
+        self.edge_length -= rhs.edge_length;
     }
 }
 
@@ -52,8 +58,7 @@ impl Square {
         }
     }
 
-    #[allow(dead_code)]
-    pub fn size(&self) -> i64 {
+    pub fn edge_length(&self) -> i64 {
         Pos::dist(&self.new_pos, &self.connect[0]) + Pos::dist(&self.new_pos, &self.connect[1])
     }
 
@@ -179,22 +184,28 @@ impl Pos {
         assert!(Pos::is_aligned(from, to));
 
         let delta = to - from;
-        if delta.y > 0 && delta.x == 0 {
-            return Dir::Up;
-        } else if delta.y > 0 && delta.x > 0 {
-            return Dir::UpRight;
-        } else if delta.y == 0 && delta.x > 0 {
-            return Dir::Right;
-        } else if delta.y < 0 && delta.x > 0 {
-            return Dir::DownRight;
-        } else if delta.y < 0 && delta.x == 0 {
-            return Dir::Down;
-        } else if delta.y < 0 && delta.x < 0 {
-            return Dir::DownLeft;
-        } else if delta.y == 0 && delta.x < 0 {
-            return Dir::Left;
+        if delta.y > 0 {
+            if delta.x > 0 {
+                Dir::UpRight
+            } else if delta.x == 0 {
+                Dir::Up
+            } else {
+                Dir::UpLeft
+            }
+        } else if delta.y == 0 {
+            if delta.x > 0 {
+                Dir::Right
+            } else {
+                Dir::Left
+            }
         } else {
-            return Dir::UpLeft;
+            if delta.x > 0 {
+                Dir::DownRight
+            } else if delta.x == 0 {
+                Dir::Down
+            } else {
+                Dir::DownLeft
+            }
         }
     }
 
@@ -219,7 +230,7 @@ impl Pos {
     }
 
     pub fn dist(a: &Pos, b: &Pos) -> i64 {
-        i64::abs(a.x - b.x) + i64::abs(a.y - b.y)
+        i64::max(i64::abs(a.x - b.x), i64::abs(a.y - b.y))
     }
 
     pub fn weight(a: &Pos, b: &Pos) -> i64 {

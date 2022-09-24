@@ -8,8 +8,15 @@ if __name__ == "__main__":
                 lib_name = line.split(" ")[1][:-1]
                 src.append(f"pub mod {lib_name} {{\n")
                 with open(f"src/{lib_name}.rs", "r") as f:
+                    is_test = False
                     for line in f:
-                        src.append("\t" + line)
+                        if len(line) >= 7 and line[:7] == "#[test]":
+                            is_test = True
+                        elif is_test:
+                            if len(line) >= 1 and line[:1] == "}":
+                                is_test = False
+                        else:
+                            src.append("    " + line)
                 src.append("}\n")
             else:
                 src.append(line)

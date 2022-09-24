@@ -1,9 +1,9 @@
 const TIME_LIMIT: f64 = 4.95;
-const WRITE_SCORE_LOG: bool = true;
+const WRITE_SCORE_LOG: bool = false;
 
 const DELETION_RECURSION_LIMIT: usize = 10;
 const START_TEMP: f64 = 500.;
-const END_TEMP: f64 = 10.;
+const END_TEMP: f64 = 0.;
 
 mod def; // expand
 mod framework; // expand
@@ -51,9 +51,10 @@ impl INeighborhoodSelector for NeighborhoodSelector {
     fn select(&self) -> Neighborhood {
         let p = rnd::nextf();
         if p < 0.1 {
-            return Neighborhood::Delete;
+            Neighborhood::Delete
+        } else {
+            Neighborhood::Add
         }
-        return Neighborhood::Add;
     }
 
     fn step(&mut self, neighborhood: &Neighborhood, adopted: bool) {

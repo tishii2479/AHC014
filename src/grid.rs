@@ -91,6 +91,7 @@ impl Grid {
         self.register_created_points(&square.diagonal, &square.new_pos);
 
         score += &self.calc_square_penalty(square);
+        score.edge_length += square.edge_length();
 
         score
     }
@@ -111,6 +112,7 @@ impl Grid {
         self.unregister_created_points(&square.diagonal, &square.new_pos);
 
         score -= &self.calc_square_penalty(square);
+        score.edge_length -= square.edge_length();
 
         score
     }
