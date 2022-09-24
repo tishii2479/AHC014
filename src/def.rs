@@ -6,37 +6,23 @@ pub const DIR_MAX: usize = 8;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Score {
     pub base: i64,
-    pub edge_length: i64,
-    pub point_closeness: i64,
-    pub point_penalty: i64,
 }
 
 impl Score {
     pub fn new() -> Score {
-        Score {
-            base: 0,
-            edge_length: 0,
-            point_closeness: 0,
-            point_penalty: 0,
-        }
+        Score { base: 0 }
     }
 }
 
 impl ops::AddAssign<&Score> for Score {
     fn add_assign(&mut self, rhs: &Score) {
         self.base += rhs.base;
-        self.edge_length += rhs.edge_length;
-        self.point_closeness += rhs.point_closeness;
-        self.point_penalty += rhs.point_penalty;
     }
 }
 
 impl ops::SubAssign<&Score> for Score {
     fn sub_assign(&mut self, rhs: &Score) {
         self.base -= rhs.base;
-        self.edge_length -= rhs.edge_length;
-        self.point_closeness -= rhs.point_closeness;
-        self.point_penalty -= rhs.point_penalty;
     }
 }
 
@@ -66,10 +52,12 @@ impl Square {
         }
     }
 
+    #[allow(dead_code)]
     pub fn size(&self) -> i64 {
         Pos::dist(&self.new_pos, &self.connect[0]) + Pos::dist(&self.new_pos, &self.connect[1])
     }
 
+    #[allow(dead_code)]
     pub fn all_pos(&self) -> [&Pos; 4] {
         [
             &self.new_pos,
@@ -79,6 +67,7 @@ impl Square {
         ]
     }
 
+    #[allow(dead_code)]
     pub fn get_corners(&self) -> (i64, i64, i64, i64) {
         let mut min_x = 100;
         let mut max_x = -1;

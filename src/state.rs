@@ -55,7 +55,6 @@ impl State {
 
         // スコアの更新
         self.score.base += self.weight(&square.new_pos);
-        self.score.edge_length += square.size();
 
         vec![Command::Add {
             square: square.clone(),
@@ -103,7 +102,6 @@ impl State {
                 .unwrap(),
         );
         self.score.base -= self.weight(&square.new_pos);
-        self.score.edge_length -= square.size();
         performed_commands.push(Command::Delete {
             square: square.clone(),
         });
@@ -223,16 +221,9 @@ fn test_perform_recursive_delete() {
     let copied_state = state.clone();
     let square = Square::new(new_pos.clone(), diagonal.clone(), connect.clone());
     let square2 = Square::new(new_pos2.clone(), new_pos.clone(), connect2.clone());
-    eprintln!("{}", state.score.point_closeness);
     state.perform_add(&square, false);
-    eprintln!("{}", state.score.point_closeness);
     state.perform_add(&square2, false);
-    eprintln!("{}", state.score.point_closeness);
     state.perform_delete(&square, &mut vec![]);
-    eprintln!(
-        "{} {}",
-        state.score.point_closeness, copied_state.score.point_closeness
-    );
 
     assert_eq!(state, copied_state);
 }

@@ -1,10 +1,9 @@
 const TIME_LIMIT: f64 = 4.95;
 const WRITE_SCORE_LOG: bool = true;
 
-const DEFAULT_DIST: i64 = 5;
 const DELETION_RECURSION_LIMIT: usize = 10;
-const START_TEMP: f64 = 1000.;
-const END_TEMP: f64 = 0.;
+const START_TEMP: f64 = 500.;
+const END_TEMP: f64 = 10.;
 
 mod def; // expand
 mod framework; // expand
@@ -54,13 +53,7 @@ impl INeighborhoodSelector for NeighborhoodSelector {
         if p < 0.1 {
             return Neighborhood::Delete;
         }
-        // if p < 0.15 {
-        //     return Neighborhood::SplitSquare;
-        // }
-        // if p < 0.20 {
-        //     return Neighborhood::ChangeSquare;
-        // }
-        return Neighborhood::MultipleAdd;
+        return Neighborhood::Add;
     }
 
     fn step(&mut self, neighborhood: &Neighborhood, adopted: bool) {
@@ -88,20 +81,7 @@ impl IState for State {
     #[allow(unused_variables)]
     fn get_score(&self, progress: f64) -> f64 {
         let base_score = self.score.base as f64;
-        // let point_closeness_score = self.score.point_closeness as f64;
-        // let threshold = progress * 3. * DEFAULT_DIST as f64 * self.points.len() as f64;
-        let point_penalty_score = self.score.point_penalty as f64;
-        // let edge_length_score = self.score.edge_length as f64 * 100.;
-        // base_score + point_closeness_score - threshold
-        // eprintln!(
-        //     "{} {}",
-        //     base_score,
-        //     self.score.point_penalty * POINT_PENALTY
-        // );
-        // base_score + point_penalty_score * (1. - progress)
-        // base_score + point_penalty_score
-        point_penalty_score
-        // base_score
+        base_score
     }
 
     fn perform_command(&mut self, command: &Command) -> Vec<Command> {

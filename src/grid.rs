@@ -1,4 +1,4 @@
-use crate::{def::*, DEFAULT_DIST};
+use crate::def::*;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Grid {
@@ -66,47 +66,8 @@ impl Grid {
         self.remove_edge(b, &dir.rev());
     }
 
-    pub fn calc_point_penalty(&self, square: &Square) -> Score {
-        let mut score = Score::new();
-        let is_diagonal = Pos::get_dir(&square.new_pos, &square.connect[0]).is_diagonal();
-
-        let (min_x, max_x, min_y, max_y) = square.get_corners();
-        let c = (self.size as i64 - 1) / 2;
-        if is_diagonal {
-            for pos in &square.all_pos() {
-                let xd = pos.x - c;
-                let yd = pos.y - c;
-                let weight = Pos::weight(&Pos { x: c, y: c }, pos);
-                let is_top_bottom = (xd <= yd && -xd <= yd) || (xd >= yd && -xd >= yd);
-                let is_side_points = pos.x == min_x || pos.x == max_x;
-                if is_top_bottom {
-                    if pos.x % 2 == if is_side_points { 0 } else { 1 } {
-                        score.point_penalty += weight;
-                    } else {
-                        score.point_penalty -= weight * 2;
-                    }
-                } else {
-                    if pos.y % 2 == if is_side_points { 0 } else { 1 } {
-                        score.point_penalty += weight;
-                    } else {
-                        score.point_penalty -= weight * 2;
-                    }
-                }
-            }
-        } else {
-            for pos in &square.all_pos() {
-                let p = pos.x + pos.y;
-                let weight = Pos::weight(&Pos { x: c, y: c }, pos);
-                let is_left_bottom_or_right_top =
-                    (pos.x == min_x && pos.y == min_y) || (pos.x == max_x && pos.y == max_y);
-                if p % 2 == if is_left_bottom_or_right_top { 0 } else { 1 } {
-                    score.point_penalty += weight;
-                } else {
-                    score.point_penalty -= weight * 2;
-                }
-            }
-        }
-
+    pub fn calc_square_penalty(&self, _square: &Square) -> Score {
+        let score = Score::new();
         score
     }
 
@@ -129,7 +90,7 @@ impl Grid {
         self.register_created_points(&square.connect[1], &square.new_pos);
         self.register_created_points(&square.diagonal, &square.new_pos);
 
-        score += &self.calc_point_penalty(square);
+        score += &self.calc_square_penalty(square);
 
         score
     }
@@ -149,7 +110,7 @@ impl Grid {
         self.unregister_created_points(&square.connect[1], &square.new_pos);
         self.unregister_created_points(&square.diagonal, &square.new_pos);
 
-        score -= &self.calc_point_penalty(square);
+        score -= &self.calc_square_penalty(square);
 
         score
     }
@@ -157,7 +118,7 @@ impl Grid {
     pub fn remove_point(&mut self, pos: &Pos) -> Score {
         assert!(self.has_point(&pos));
 
-        let mut score = Score::new();
+        let score = Score::new();
 
         let point = self.point(&pos).as_ref().unwrap().clone();
         for i in 0..DIR_MAX {
@@ -165,19 +126,10 @@ impl Grid {
             if let Some(nearest_pos) = &point.nearest_points[dir.val() as usize] {
                 assert!(self.has_point(&nearest_pos));
 
-                score.point_closeness -= i64::max(0, DEFAULT_DIST - Pos::dist(pos, nearest_pos));
-
                 if let Some(opposite_nearest_pos) = &point.nearest_points[dir.rev().val() as usize]
                 {
                     self.point(nearest_pos).as_mut().unwrap().nearest_points
                         [dir.rev().val() as usize] = Some(opposite_nearest_pos.clone());
-
-                    if i < DIR_MAX / 2 {
-                        score.point_closeness += i64::max(
-                            0,
-                            DEFAULT_DIST - Pos::dist(opposite_nearest_pos, nearest_pos),
-                        );
-                    }
                 } else {
                     self.point(nearest_pos).as_mut().unwrap().nearest_points
                         [dir.rev().val() as usize] = None;
@@ -192,27 +144,15 @@ impl Grid {
     pub fn add_point(&mut self, pos: &Pos, mut point: Point, square: Option<Square>) -> Score {
         assert!(!self.has_point(&pos));
 
-        let mut score = Score::new();
+        let score = Score::new();
 
         for i in 0..DIR_MAX {
             let dir = Dir::from_i64(i as i64);
             if let Some(nearest_pos) = self.nearest_point_pos(&pos, &dir) {
                 let nearest_point = self.point(&nearest_pos).as_mut().unwrap();
-                if i < DIR_MAX / 2 {
-                    if let Some(prev_nearest_point_nearest_pos) =
-                        nearest_point.nearest_points[dir.rev().val() as usize]
-                    {
-                        score.point_closeness -= i64::max(
-                            0,
-                            DEFAULT_DIST - Pos::dist(&prev_nearest_point_nearest_pos, &nearest_pos),
-                        );
-                    }
-                }
 
                 nearest_point.nearest_points[dir.rev().val() as usize] = Some(pos.clone());
                 point.nearest_points[dir.val() as usize] = Some(nearest_pos.clone());
-
-                score.point_closeness += i64::max(0, DEFAULT_DIST - Pos::dist(&pos, &nearest_pos));
             }
         }
         point.added_info = square.clone();
@@ -275,151 +215,4 @@ impl Grid {
     pub fn is_valid(&self, pos: &Pos) -> bool {
         pos.x >= 0 && pos.y >= 0 && pos.x < self.size as i64 && pos.y < self.size as i64
     }
-}
-
-#[allow(dead_code)]
-#[test]
-fn test_calc_point_penalty() {
-    let n = 31;
-    let grid = Grid::new(n);
-
-    let square = Square::new(
-        Pos { x: 20, y: 15 },
-        Pos { x: 21, y: 16 },
-        [Pos { x: 20, y: 16 }, Pos { x: 21, y: 15 }],
-    );
-    let square2 = Square::new(
-        Pos { x: 20, y: 16 },
-        Pos { x: 21, y: 17 },
-        [Pos { x: 20, y: 17 }, Pos { x: 21, y: 16 }],
-    );
-
-    eprintln!(
-        "{:?}, {}",
-        square,
-        grid.calc_point_penalty(&square).point_penalty
-    );
-    eprintln!(
-        "{:?}, {}",
-        square2,
-        grid.calc_point_penalty(&square2).point_penalty
-    );
-
-    let square = Square::new(
-        Pos { x: 10, y: 15 },
-        Pos { x: 12, y: 15 },
-        [Pos { x: 11, y: 16 }, Pos { x: 11, y: 14 }],
-    );
-    let square2 = Square::new(
-        Pos { x: 10, y: 16 },
-        Pos { x: 12, y: 16 },
-        [Pos { x: 11, y: 17 }, Pos { x: 11, y: 15 }],
-    );
-    let square3 = Square::new(
-        Pos { x: 9, y: 15 },
-        Pos { x: 11, y: 15 },
-        [Pos { x: 10, y: 16 }, Pos { x: 10, y: 14 }],
-    );
-
-    eprintln!(
-        "{:?}, {}",
-        square,
-        grid.calc_point_penalty(&square).point_penalty
-    );
-    eprintln!(
-        "{:?}, {}",
-        square2,
-        grid.calc_point_penalty(&square2).point_penalty
-    );
-    eprintln!(
-        "{:?}, {}",
-        square3,
-        grid.calc_point_penalty(&square3).point_penalty
-    );
-
-    let square = Square::new(
-        Pos { x: 15, y: 10 },
-        Pos { x: 15, y: 8 },
-        [Pos { x: 14, y: 9 }, Pos { x: 16, y: 9 }],
-    );
-    let square2 = Square::new(
-        Pos { x: 16, y: 10 },
-        Pos { x: 16, y: 8 },
-        [Pos { x: 15, y: 9 }, Pos { x: 17, y: 9 }],
-    );
-    let square3 = Square::new(
-        Pos { x: 15, y: 9 },
-        Pos { x: 15, y: 7 },
-        [Pos { x: 14, y: 8 }, Pos { x: 16, y: 8 }],
-    );
-
-    eprintln!(
-        "{:?}, {}",
-        square,
-        grid.calc_point_penalty(&square).point_penalty
-    );
-    eprintln!(
-        "{:?}, {}",
-        square2,
-        grid.calc_point_penalty(&square2).point_penalty
-    );
-    eprintln!(
-        "{:?}, {}",
-        square3,
-        grid.calc_point_penalty(&square3).point_penalty
-    );
-
-    let square = Square::new(
-        Pos { x: 10, y: 15 },
-        Pos { x: 13, y: 16 },
-        [Pos { x: 11, y: 14 }, Pos { x: 12, y: 17 }],
-    );
-    let square2 = Square::new(
-        Pos { x: 10, y: 3 },
-        Pos { x: 20, y: 5 },
-        [Pos { x: 10, y: 5 }, Pos { x: 20, y: 3 }],
-    );
-
-    eprintln!(
-        "{:?}, {}",
-        square,
-        grid.calc_point_penalty(&square).point_penalty
-    );
-    eprintln!(
-        "{:?}, {}",
-        square2,
-        grid.calc_point_penalty(&square2).point_penalty
-    );
-
-    let square = Square::new(
-        Pos { x: 15, y: 6 },
-        Pos { x: 15, y: 8 },
-        [Pos { x: 14, y: 7 }, Pos { x: 16, y: 7 }],
-    );
-    let square2 = Square::new(
-        Pos { x: 16, y: 6 },
-        Pos { x: 16, y: 8 },
-        [Pos { x: 15, y: 7 }, Pos { x: 17, y: 7 }],
-    );
-    let square3 = Square::new(
-        Pos { x: 15, y: 5 },
-        Pos { x: 15, y: 7 },
-        [Pos { x: 14, y: 6 }, Pos { x: 16, y: 6 }],
-    );
-
-    eprintln!(
-        "{:?}, {}",
-        square,
-        grid.calc_point_penalty(&square).point_penalty
-    );
-    eprintln!(
-        "{:?}, {}",
-        square2,
-        grid.calc_point_penalty(&square2).point_penalty
-    );
-    eprintln!(
-        "{:?}, {}",
-        square3,
-        grid.calc_point_penalty(&square3).point_penalty
-    );
 }
