@@ -12,11 +12,7 @@ pub struct State {
 impl State {
     pub fn new(n: usize, p: Vec<Pos>) -> State {
         let mut state = State {
-            grid: Grid {
-                size: n,
-                points: vec![vec![None; n]; n],
-                edges: vec![vec![vec![false; DIR_MAX]; n]; n],
-            },
+            grid: Grid::new(n),
             points: p.clone(),
             squares: vec![],
             score: Score::new(),
@@ -144,94 +140,6 @@ impl State {
         let c = ((self.grid.size - 1) / 2) as i64;
         (pos.y as i64 - c) * (pos.y as i64 - c) + (pos.x as i64 - c) * (pos.x as i64 - c) + 1
     }
-}
-
-#[allow(dead_code)]
-// #[test]
-fn test_calc_point_penalty() {
-    let n = 31;
-    let state = State::new(n, vec![]);
-
-    let square = Square::new(
-        Pos { x: 20, y: 15 },
-        Pos { x: 21, y: 16 },
-        [Pos { x: 20, y: 16 }, Pos { x: 21, y: 15 }],
-    );
-    let square2 = Square::new(
-        Pos { x: 20, y: 16 },
-        Pos { x: 21, y: 17 },
-        [Pos { x: 20, y: 17 }, Pos { x: 21, y: 16 }],
-    );
-
-    assert_eq!(state.grid.calc_point_penalty(&square).point_penalty, 0);
-    assert_eq!(state.grid.calc_point_penalty(&square2).point_penalty, 4);
-
-    let square = Square::new(
-        Pos { x: 10, y: 15 },
-        Pos { x: 12, y: 15 },
-        [Pos { x: 11, y: 16 }, Pos { x: 11, y: 14 }],
-    );
-    let square2 = Square::new(
-        Pos { x: 10, y: 16 },
-        Pos { x: 12, y: 16 },
-        [Pos { x: 11, y: 17 }, Pos { x: 11, y: 15 }],
-    );
-    let square3 = Square::new(
-        Pos { x: 9, y: 15 },
-        Pos { x: 11, y: 15 },
-        [Pos { x: 10, y: 16 }, Pos { x: 10, y: 14 }],
-    );
-
-    assert_eq!(state.grid.calc_point_penalty(&square).point_penalty, 0);
-    assert_eq!(state.grid.calc_point_penalty(&square2).point_penalty, 4);
-    assert_eq!(state.grid.calc_point_penalty(&square3).point_penalty, 0);
-
-    let square = Square::new(
-        Pos { x: 15, y: 10 },
-        Pos { x: 15, y: 8 },
-        [Pos { x: 14, y: 9 }, Pos { x: 16, y: 9 }],
-    );
-    let square2 = Square::new(
-        Pos { x: 16, y: 10 },
-        Pos { x: 16, y: 8 },
-        [Pos { x: 15, y: 9 }, Pos { x: 17, y: 9 }],
-    );
-    let square3 = Square::new(
-        Pos { x: 15, y: 9 },
-        Pos { x: 15, y: 7 },
-        [Pos { x: 14, y: 8 }, Pos { x: 16, y: 8 }],
-    );
-
-    assert_eq!(state.grid.calc_point_penalty(&square).point_penalty, 4);
-    assert_eq!(state.grid.calc_point_penalty(&square2).point_penalty, 0);
-    assert_eq!(state.grid.calc_point_penalty(&square3).point_penalty, 4);
-
-    let square = Square::new(
-        Pos { x: 10, y: 15 },
-        Pos { x: 13, y: 16 },
-        [Pos { x: 11, y: 14 }, Pos { x: 12, y: 17 }],
-    );
-    assert_eq!(state.grid.calc_point_penalty(&square).point_penalty, 2);
-
-    let square = Square::new(
-        Pos { x: 15, y: 6 },
-        Pos { x: 15, y: 8 },
-        [Pos { x: 14, y: 7 }, Pos { x: 16, y: 7 }],
-    );
-    let square2 = Square::new(
-        Pos { x: 16, y: 6 },
-        Pos { x: 16, y: 8 },
-        [Pos { x: 15, y: 7 }, Pos { x: 17, y: 7 }],
-    );
-    let square3 = Square::new(
-        Pos { x: 15, y: 5 },
-        Pos { x: 15, y: 7 },
-        [Pos { x: 14, y: 6 }, Pos { x: 16, y: 6 }],
-    );
-
-    assert_eq!(state.grid.calc_point_penalty(&square).point_penalty, 4);
-    assert_eq!(state.grid.calc_point_penalty(&square2).point_penalty, 0);
-    assert_eq!(state.grid.calc_point_penalty(&square3).point_penalty, 4);
 }
 
 #[test]

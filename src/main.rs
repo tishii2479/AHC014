@@ -1,4 +1,5 @@
 const TIME_LIMIT: f64 = 4.95;
+const WRITE_SCORE_LOG: bool = true;
 
 const DEFAULT_DIST: i64 = 5;
 const DELETION_RECURSION_LIMIT: usize = 10;
@@ -59,7 +60,7 @@ impl INeighborhoodSelector for NeighborhoodSelector {
         // if p < 0.20 {
         //     return Neighborhood::ChangeSquare;
         // }
-        return Neighborhood::Add;
+        return Neighborhood::MultipleAdd;
     }
 
     fn step(&mut self, neighborhood: &Neighborhood, adopted: bool) {
@@ -167,7 +168,7 @@ impl ISolver for Solver {
             self.neighborhood_selector
                 .step(&neighborhood, adopt_new_state);
 
-            if cfg!(debug_assertions) {
+            if WRITE_SCORE_LOG {
                 if loop_count % 100 == 0 {
                     self.score_history.push(self.state.score.base as f64);
                 }
@@ -175,9 +176,7 @@ impl ISolver for Solver {
             loop_count += 1;
         }
 
-        // if cfg!(debug_assertions) {
         eprintln!("loop_count: {}", loop_count);
-        // }
     }
 }
 
@@ -214,7 +213,7 @@ impl Solver {
         );
         self.neighborhood_selector.output_statistics();
 
-        if cfg!(debug_assertions) {
+        if WRITE_SCORE_LOG {
             // スコア遷移の書き出し
             let mut file = fs::File::create("tools/out/score_log.txt").unwrap();
             for score in &self.score_history {

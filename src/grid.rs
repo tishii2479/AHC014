@@ -8,6 +8,14 @@ pub struct Grid {
 }
 
 impl Grid {
+    pub fn new(n: usize) -> Grid {
+        Grid {
+            size: n,
+            points: vec![vec![None; n]; n],
+            edges: vec![vec![vec![false; DIR_MAX]; n]; n],
+        }
+    }
+
     pub fn point(&mut self, pos: &Pos) -> &mut Option<Point> {
         &mut self.points[pos.y as usize][pos.x as usize]
     }
@@ -267,4 +275,151 @@ impl Grid {
     pub fn is_valid(&self, pos: &Pos) -> bool {
         pos.x >= 0 && pos.y >= 0 && pos.x < self.size as i64 && pos.y < self.size as i64
     }
+}
+
+#[allow(dead_code)]
+#[test]
+fn test_calc_point_penalty() {
+    let n = 31;
+    let grid = Grid::new(n);
+
+    let square = Square::new(
+        Pos { x: 20, y: 15 },
+        Pos { x: 21, y: 16 },
+        [Pos { x: 20, y: 16 }, Pos { x: 21, y: 15 }],
+    );
+    let square2 = Square::new(
+        Pos { x: 20, y: 16 },
+        Pos { x: 21, y: 17 },
+        [Pos { x: 20, y: 17 }, Pos { x: 21, y: 16 }],
+    );
+
+    eprintln!(
+        "{:?}, {}",
+        square,
+        grid.calc_point_penalty(&square).point_penalty
+    );
+    eprintln!(
+        "{:?}, {}",
+        square2,
+        grid.calc_point_penalty(&square2).point_penalty
+    );
+
+    let square = Square::new(
+        Pos { x: 10, y: 15 },
+        Pos { x: 12, y: 15 },
+        [Pos { x: 11, y: 16 }, Pos { x: 11, y: 14 }],
+    );
+    let square2 = Square::new(
+        Pos { x: 10, y: 16 },
+        Pos { x: 12, y: 16 },
+        [Pos { x: 11, y: 17 }, Pos { x: 11, y: 15 }],
+    );
+    let square3 = Square::new(
+        Pos { x: 9, y: 15 },
+        Pos { x: 11, y: 15 },
+        [Pos { x: 10, y: 16 }, Pos { x: 10, y: 14 }],
+    );
+
+    eprintln!(
+        "{:?}, {}",
+        square,
+        grid.calc_point_penalty(&square).point_penalty
+    );
+    eprintln!(
+        "{:?}, {}",
+        square2,
+        grid.calc_point_penalty(&square2).point_penalty
+    );
+    eprintln!(
+        "{:?}, {}",
+        square3,
+        grid.calc_point_penalty(&square3).point_penalty
+    );
+
+    let square = Square::new(
+        Pos { x: 15, y: 10 },
+        Pos { x: 15, y: 8 },
+        [Pos { x: 14, y: 9 }, Pos { x: 16, y: 9 }],
+    );
+    let square2 = Square::new(
+        Pos { x: 16, y: 10 },
+        Pos { x: 16, y: 8 },
+        [Pos { x: 15, y: 9 }, Pos { x: 17, y: 9 }],
+    );
+    let square3 = Square::new(
+        Pos { x: 15, y: 9 },
+        Pos { x: 15, y: 7 },
+        [Pos { x: 14, y: 8 }, Pos { x: 16, y: 8 }],
+    );
+
+    eprintln!(
+        "{:?}, {}",
+        square,
+        grid.calc_point_penalty(&square).point_penalty
+    );
+    eprintln!(
+        "{:?}, {}",
+        square2,
+        grid.calc_point_penalty(&square2).point_penalty
+    );
+    eprintln!(
+        "{:?}, {}",
+        square3,
+        grid.calc_point_penalty(&square3).point_penalty
+    );
+
+    let square = Square::new(
+        Pos { x: 10, y: 15 },
+        Pos { x: 13, y: 16 },
+        [Pos { x: 11, y: 14 }, Pos { x: 12, y: 17 }],
+    );
+    let square2 = Square::new(
+        Pos { x: 10, y: 3 },
+        Pos { x: 20, y: 5 },
+        [Pos { x: 10, y: 5 }, Pos { x: 20, y: 3 }],
+    );
+
+    eprintln!(
+        "{:?}, {}",
+        square,
+        grid.calc_point_penalty(&square).point_penalty
+    );
+    eprintln!(
+        "{:?}, {}",
+        square2,
+        grid.calc_point_penalty(&square2).point_penalty
+    );
+
+    let square = Square::new(
+        Pos { x: 15, y: 6 },
+        Pos { x: 15, y: 8 },
+        [Pos { x: 14, y: 7 }, Pos { x: 16, y: 7 }],
+    );
+    let square2 = Square::new(
+        Pos { x: 16, y: 6 },
+        Pos { x: 16, y: 8 },
+        [Pos { x: 15, y: 7 }, Pos { x: 17, y: 7 }],
+    );
+    let square3 = Square::new(
+        Pos { x: 15, y: 5 },
+        Pos { x: 15, y: 7 },
+        [Pos { x: 14, y: 6 }, Pos { x: 16, y: 6 }],
+    );
+
+    eprintln!(
+        "{:?}, {}",
+        square,
+        grid.calc_point_penalty(&square).point_penalty
+    );
+    eprintln!(
+        "{:?}, {}",
+        square2,
+        grid.calc_point_penalty(&square2).point_penalty
+    );
+    eprintln!(
+        "{:?}, {}",
+        square3,
+        grid.calc_point_penalty(&square3).point_penalty
+    );
 }

@@ -6,6 +6,7 @@ pub enum Neighborhood {
     Delete = 1,
     ChangeSquare = 2,
     SplitSquare = 3,
+    MultipleAdd = 4,
 }
 
 impl Neighborhood {
@@ -15,7 +16,34 @@ impl Neighborhood {
             Neighborhood::Delete => Neighborhood::perform_delete(state),
             Neighborhood::ChangeSquare => Neighborhood::perform_change_square(state),
             Neighborhood::SplitSquare => Neighborhood::perform_split_square(state),
+            Neighborhood::MultipleAdd => Neighborhood::perform_multiple_add(state),
         }
+    }
+
+    fn perform_multiple_add(state: &mut State) -> Vec<Command> {
+        let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
+        let mut performed_commands = Neighborhood::attempt_add(state, &selected_p, None);
+        if performed_commands.len() == 0 {
+            return vec![];
+        }
+        for _ in 0..DIR_MAX {
+            let i = rnd::gen_range(0, DIR_MAX);
+            let dir = Dir::from_i64(i as i64);
+            if let Some(nearest_pos) = state
+                .grid
+                .point(&selected_p)
+                .as_ref()
+                .unwrap()
+                .nearest_points[dir.val() as usize]
+            {
+                if rnd::nextf() < 0.5 {
+                    continue;
+                }
+                let mut second_add = Neighborhood::attempt_add(state, &nearest_pos, None);
+                performed_commands.append(&mut second_add);
+            }
+        }
+        performed_commands
     }
 
     fn perform_add(state: &mut State) -> Vec<Command> {
@@ -182,12 +210,13 @@ impl Neighborhood {
 }
 
 impl Neighborhood {
-    pub fn all() -> [Neighborhood; 4] {
+    pub fn all() -> [Neighborhood; 5] {
         [
             Neighborhood::Add,
             Neighborhood::Delete,
             Neighborhood::ChangeSquare,
             Neighborhood::SplitSquare,
+            Neighborhood::MultipleAdd,
         ]
     }
 
@@ -197,6 +226,7 @@ impl Neighborhood {
             1 => Neighborhood::Delete,
             2 => Neighborhood::ChangeSquare,
             3 => Neighborhood::SplitSquare,
+            4 => Neighborhood::MultipleAdd,
             _ => panic!("Neighborhood value {} is invalid.", v),
         }
     }
