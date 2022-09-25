@@ -88,7 +88,7 @@ impl Square {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Command {
     Add { square: Square },
     Delete { square: Square },

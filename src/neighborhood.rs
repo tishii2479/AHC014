@@ -22,28 +22,46 @@ impl Neighborhood {
 
     fn perform_multiple_add(state: &mut State) -> Vec<Command> {
         let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
-        let mut performed_commands = Neighborhood::attempt_add(state, &selected_p, None);
-        if performed_commands.len() == 0 {
-            return vec![];
+        let mut performed_commands = vec![];
+        let mut recursion_count = 0;
+        Neighborhood::attempt_multiple_add(
+            state,
+            &selected_p,
+            &mut recursion_count,
+            &MULTIPLE_ADD_RECURSION_LIMIT,
+            &mut performed_commands,
+        );
+        performed_commands
+    }
+
+    fn attempt_multiple_add(
+        state: &mut State,
+        pos: &Pos,
+        recursion_count: &mut usize,
+        recursion_limit: &usize,
+        performed_commands: &mut Vec<Command>,
+    ) {
+        *recursion_count += 1;
+        if *recursion_count >= *recursion_limit {
+            return;
         }
         for _ in 0..DIR_MAX {
             let i = rnd::gen_range(0, DIR_MAX);
             let dir = Dir::from_i64(i as i64);
-            if let Some(nearest_pos) = state
-                .grid
-                .point(&selected_p)
-                .as_ref()
-                .unwrap()
-                .nearest_points[dir.val() as usize]
+            if let Some(nearest_pos) =
+                state.grid.point(&pos).as_ref().unwrap().nearest_points[dir.val() as usize]
             {
-                if rnd::nextf() < 0.5 {
-                    continue;
-                }
-                let mut second_add = Neighborhood::attempt_add(state, &nearest_pos, None);
-                performed_commands.append(&mut second_add);
+                let mut add = Neighborhood::attempt_add(state, &nearest_pos, None);
+                performed_commands.append(&mut add);
+                Neighborhood::attempt_multiple_add(
+                    state,
+                    &nearest_pos,
+                    recursion_count,
+                    recursion_limit,
+                    performed_commands,
+                );
             }
         }
-        performed_commands
     }
 
     fn perform_add(state: &mut State) -> Vec<Command> {
@@ -86,6 +104,7 @@ impl Neighborhood {
             if !state.grid.has_point(&point.pos)
                 || !state.grid.has_point(&pos_prev)
                 || !state.grid.has_point(&pos_next)
+                || state.grid.has_point(&new_pos)
             {
                 return vec![];
             }
@@ -162,11 +181,14 @@ impl Neighborhood {
                         return performed_commands;
                     }
 
-                    performed_commands.append(&mut Neighborhood::attempt_add(
+                    let mut recursion_count: usize = 0;
+                    Neighborhood::attempt_multiple_add(
                         state,
                         &pos,
-                        Some(&front.prev()),
-                    ));
+                        &mut recursion_count,
+                        &MULTIPLE_ADD_RECURSION_LIMIT,
+                        &mut performed_commands,
+                    );
                     return performed_commands;
                 }
             }

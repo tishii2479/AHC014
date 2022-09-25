@@ -1,6 +1,7 @@
 const TIME_LIMIT: f64 = 4.95;
 const WRITE_SCORE_LOG: bool = false;
 
+const MULTIPLE_ADD_RECURSION_LIMIT: usize = 20;
 const DELETION_RECURSION_LIMIT: usize = 10;
 const START_TEMP: f64 = 500.;
 const END_TEMP: f64 = 0.;
@@ -52,6 +53,10 @@ impl INeighborhoodSelector for NeighborhoodSelector {
         let p = rnd::nextf();
         if p < 0.1 {
             Neighborhood::Delete
+        } else if p < 0.2 {
+            Neighborhood::ChangeSquare
+        } else if p < 0.3 {
+            Neighborhood::SplitSquare
         } else {
             Neighborhood::Add
         }
