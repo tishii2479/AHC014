@@ -3,8 +3,6 @@ const WRITE_SCORE_LOG: bool = false;
 
 const MULTIPLE_ADD_RECURSION_LIMIT: usize = 20;
 const DELETION_RECURSION_LIMIT: usize = 10;
-const START_TEMP: f64 = 500.;
-const END_TEMP: f64 = 0.;
 
 mod def; // expand
 mod framework; // expand
@@ -21,6 +19,11 @@ use neighborhood::*;
 use proconio::input;
 use state::*;
 use util::*;
+
+#[allow(unused_variables)]
+fn calc_start_temp(n: usize, m: usize) -> f64 {
+    500. * (n as f64 / 30.).powf(2.)
+}
 
 struct NeighborhoodSelector {
     total_cnt: Vec<i64>,
@@ -219,13 +222,16 @@ fn main() {
         p: [Pos; m]
     }
 
+    let start_temp: f64 = calc_start_temp(n, m);
+    let end_temp: f64 = 0.;
+
     let state = State::new(n, p);
     let mut solver = Solver {
         state,
         neighborhood_selector: NeighborhoodSelector::new(Neighborhood::all().len()),
         optimizer: Optimizer {
-            start_temp: START_TEMP,
-            end_temp: END_TEMP,
+            start_temp,
+            end_temp,
         },
         score_history: vec![],
     };

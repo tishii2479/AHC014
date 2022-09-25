@@ -41,10 +41,10 @@ impl Neighborhood {
         recursion_limit: &usize,
         performed_commands: &mut Vec<Command>,
     ) {
-        *recursion_count += 1;
         if *recursion_count >= *recursion_limit {
             return;
         }
+        *recursion_count += 1;
         for _ in 0..DIR_MAX {
             let i = rnd::gen_range(0, DIR_MAX);
             let dir = Dir::from_i64(i as i64);
