@@ -203,6 +203,15 @@ impl Neighborhood {
                 &diagonal_point,
                 &dir,
             ));
+
+            // let mut recursion_count: usize = 0;
+            // Neighborhood::attempt_multiple_add(
+            //     state,
+            //     &diagonal_point.pos,
+            //     &mut recursion_count,
+            //     &MULTIPLE_ADD_RECURSION_LIMIT,
+            //     &mut performed_commands,
+            // );
             return performed_commands;
         }
 
