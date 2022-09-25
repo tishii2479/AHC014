@@ -115,8 +115,14 @@ impl State {
     ) -> usize {
         let mut dep_size: usize = 1 + parent_dep_size;
 
-        let point = self.grid.point(&new_pos).as_ref().unwrap().clone();
-        for created_point in &point.created_points {
+        let created_points = self
+            .grid
+            .point(&new_pos)
+            .as_ref()
+            .unwrap()
+            .created_points
+            .clone();
+        for created_point in &created_points {
             if dep_size >= recursion_limit {
                 return dep_size - parent_dep_size;
             }

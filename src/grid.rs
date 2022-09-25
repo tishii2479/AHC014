@@ -122,14 +122,13 @@ impl Grid {
 
         let score = Score::new();
 
-        let point = self.point(&pos).as_ref().unwrap().clone();
+        let nearest_points = self.point(&pos).as_ref().unwrap().nearest_points.clone();
         for i in 0..DIR_MAX {
             let dir = Dir::from_i64(i as i64);
-            if let Some(nearest_pos) = &point.nearest_points[dir.val() as usize] {
+            if let Some(nearest_pos) = &nearest_points[dir.val() as usize] {
                 assert!(self.has_point(&nearest_pos));
 
-                if let Some(opposite_nearest_pos) = &point.nearest_points[dir.rev().val() as usize]
-                {
+                if let Some(opposite_nearest_pos) = &nearest_points[dir.rev().val() as usize] {
                     self.point(nearest_pos).as_mut().unwrap().nearest_points
                         [dir.rev().val() as usize] = Some(opposite_nearest_pos.clone());
                 } else {
@@ -157,7 +156,7 @@ impl Grid {
                 point.nearest_points[dir.val() as usize] = Some(nearest_pos.clone());
             }
         }
-        point.added_info = square.clone();
+        point.added_info = square;
         self.points[pos.y as usize][pos.x as usize] = Some(point);
 
         score

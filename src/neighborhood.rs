@@ -124,15 +124,21 @@ impl Neighborhood {
 
     fn attempt_change_square(state: &mut State, pos: &Pos) -> Vec<Command> {
         assert!(state.grid.has_point(&pos));
-        let point = state.grid.point(&pos).as_ref().unwrap().clone();
+        let nearest_points = state
+            .grid
+            .point(&pos)
+            .as_ref()
+            .unwrap()
+            .nearest_points
+            .clone();
 
         for _ in 0..DIR_MAX {
             let i = rnd::gen_range(0, DIR_MAX);
             let front = Dir::from_i64(i as i64);
             let left = front.prev().prev();
             if state.grid.has_edge(&pos, &left) && state.grid.has_edge(&pos, &front) {
-                let left_pos = point.nearest_points[left.val() as usize].as_ref().unwrap();
-                let front_pos = point.nearest_points[front.val() as usize].as_ref().unwrap();
+                let left_pos = nearest_points[left.val() as usize].as_ref().unwrap();
+                let front_pos = nearest_points[front.val() as usize].as_ref().unwrap();
                 let left_front_pos = &(&(left_pos + front_pos) - pos);
                 if !state.grid.is_valid(left_front_pos) {
                     continue;
