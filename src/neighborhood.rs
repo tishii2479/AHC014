@@ -137,64 +137,37 @@ impl Neighborhood {
 
     fn perform_change_square(state: &mut State) -> Vec<Command> {
         // 四角を作っている点を探す
-        let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
-        Neighborhood::attempt_change_square(state, &selected_p)
+        if state.squares.len() == 0 {
+            return vec![];
+        }
+        let square = state.squares[rnd::gen_range(0, state.squares.len()) as usize];
+        Neighborhood::attempt_change_square(state, &square)
     }
 
-    fn attempt_change_square(state: &mut State, pos: &Pos) -> Vec<Command> {
-        assert!(state.grid.has_point(&pos));
-        let nearest_points = state
-            .grid
-            .point(&pos)
-            .as_ref()
-            .unwrap()
-            .nearest_points
-            .clone();
+    fn attempt_change_square(state: &mut State, square: &Square) -> Vec<Command> {
+        let mut performed_commands = state.perform_command(&Command::Delete {
+            square: square.clone(),
+        });
 
-        for _ in 0..DIR_MAX {
-            let i = rnd::gen_range(0, DIR_MAX);
-            let front = Dir::from_i64(i as i64);
-            let left = front.prev().prev();
-            if state.grid.has_edge(&pos, &left) && state.grid.has_edge(&pos, &front) {
-                let left_pos = nearest_points[left.val() as usize].as_ref().unwrap();
-                let front_pos = nearest_points[front.val() as usize].as_ref().unwrap();
-                let left_front_pos = &(&(left_pos + front_pos) - pos);
-                if !state.grid.is_valid(left_front_pos) {
-                    continue;
-                }
-                if let Some(left_front_point) = state.grid.point(left_front_pos) {
-                    if !left_front_point.is_added {
-                        continue;
-                    }
-                    let added_square = left_front_point.added_info.as_ref().unwrap().clone();
-                    let mut performed_commands = state.perform_command(&Command::Delete {
-                        square: added_square,
-                    });
-
-                    // 四角を消せなかったら中止
-                    if performed_commands.len() == 0 {
-                        return performed_commands;
-                    }
-
-                    // 再帰的にposの点も消してしまった時は中止
-                    if !state.grid.has_point(&pos) {
-                        return performed_commands;
-                    }
-
-                    let mut recursion_count: usize = 0;
-                    Neighborhood::attempt_multiple_add(
-                        state,
-                        &pos,
-                        &mut recursion_count,
-                        &MULTIPLE_ADD_RECURSION_LIMIT,
-                        &mut performed_commands,
-                    );
-                    return performed_commands;
-                }
-            }
+        // 四角を消せなかったら中止
+        if performed_commands.len() == 0 {
+            return performed_commands;
         }
 
-        return vec![];
+        // 再帰的にposの点も消してしまった時は中止
+        if !state.grid.has_point(&square.diagonal) {
+            return performed_commands;
+        }
+
+        let mut recursion_count: usize = 0;
+        Neighborhood::attempt_multiple_add(
+            state,
+            &square.diagonal,
+            &mut recursion_count,
+            &MULTIPLE_ADD_RECURSION_LIMIT,
+            &mut performed_commands,
+        );
+        return performed_commands;
     }
 
     fn perform_split_square(state: &mut State) -> Vec<Command> {
@@ -302,16 +275,17 @@ fn test_change_square() {
 
     let mut state = State::new(n, p);
     let mut other_state = state.clone();
+    let square = Square::new(old_pos.clone(), selected_p.clone(), connect);
     other_state.perform_command(&Command::Add {
         square: Square::new(new_pos.clone(), selected_p.clone(), connect2),
     });
     state.perform_command(&Command::Add {
-        square: Square::new(old_pos.clone(), selected_p.clone(), connect),
+        square: square.clone(),
     });
     let copied_state = state.clone();
-    let performed_commands = Neighborhood::attempt_change_square(&mut state, &selected_p);
+    let performed_commands = Neighborhood::attempt_change_square(&mut state, &square);
 
-    assert_eq!(performed_commands.len(), 2);
+    assert_eq!(performed_commands.len(), 4);
     // FXIME: Squareのidは異なってしまう
     // assert_eq!(state, other_state);
     assert!(!state.grid.has_point(&old_pos));

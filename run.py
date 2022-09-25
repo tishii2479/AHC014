@@ -77,7 +77,7 @@ def main():
     base = 500000
     step = 50000
     for s in scores:
-        cnt[(s[0] - base) // step] += 1
+        cnt[min(len(cnt) - 1, (s[0] - base) // step)] += 1
 
     for i in range(div):
         score = base + i * step
