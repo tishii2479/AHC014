@@ -2,7 +2,7 @@ import multiprocessing
 import pipes
 import subprocess
 
-CASE = 100
+CASE = 500
 TL = 6.0
 
 
@@ -44,8 +44,7 @@ def main():
     subprocess.run("cargo build --release", shell=True)
     with multiprocessing.Pool(max(1, multiprocessing.cpu_count() - 2)) as pool:
         for seed, score, n, m in pool.imap_unordered(execute_case, range(CASE)):
-            if count > 0 and count % 10 == 0:
-                print(f"case: {count}, current ave: {total / count}", flush=True)
+            count += 1
             try:
                 scores.append((int(score.split()[2]), f"{seed:04}"))
                 total += scores[-1][0]
@@ -57,7 +56,11 @@ def main():
                 print(seed, "IndexError", flush=True)
                 print(f"error: {score}", flush=True)
                 exit()
-            count += 1
+
+            print(
+                f"case {count:3}: (score: {scores[-1][0]:7}, current ave: {total / count:10.2f})",
+                flush=True,
+            )
 
             div_scores[min(5, (n - 31) // 5)][(m - 30) // 30] += scores[-1][0]
             div_counts[min(5, (n - 31) // 5)][(m - 30) // 30] += 1
