@@ -212,6 +212,7 @@ impl Neighborhood {
         if nearest_points[dir1.val() as usize] != Some(square.connect[0])
             || nearest_points[dir2.val() as usize] != Some(square.connect[1])
         {
+            let start_score = state.get_score(1.);
             let mut performed_commands = state.perform_command(&Command::Delete {
                 square: square.clone(),
             });
@@ -227,7 +228,7 @@ impl Neighborhood {
                 &mut recursion_count,
                 &MULTIPLE_ADD_RECURSION_LIMIT,
                 &mut performed_commands,
-                state.get_score(1.),
+                start_score,
             );
             return performed_commands;
         }
