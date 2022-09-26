@@ -141,13 +141,13 @@ impl Neighborhood {
 
     fn perform_delete(state: &mut State) -> Vec<Command> {
         let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
-        Neighborhood::attemp_delete(state, &selected_p)
+        Neighborhood::attempt_delete(state, &selected_p)
     }
 
-    fn attemp_delete(state: &mut State, pos: &Pos) -> Vec<Command> {
+    fn attempt_delete(state: &mut State, pos: &Pos) -> Vec<Command> {
         assert!(state.grid.has_point(&pos));
-        let point = state.grid.point(&pos).as_ref().unwrap().clone();
-        if let Some(added_info) = point.added_info {
+        let added_info = state.grid.point(&pos).as_ref().unwrap().added_info.clone();
+        if let Some(added_info) = added_info {
             return state.perform_command(&Command::Delete { square: added_info });
         }
         return vec![];
@@ -199,12 +199,18 @@ impl Neighborhood {
     }
 
     fn attempt_split_square(state: &mut State, square: &Square) -> Vec<Command> {
-        let diagonal_point = state.grid.point(&square.diagonal).as_ref().unwrap().clone();
+        let nearest_points = state
+            .grid
+            .point(&square.diagonal)
+            .as_ref()
+            .unwrap()
+            .nearest_points
+            .clone();
         let dir1 = Pos::get_dir(&square.diagonal, &square.connect[0]);
         let dir2 = Pos::get_dir(&square.diagonal, &square.connect[1]);
 
-        if diagonal_point.nearest_points[dir1.val() as usize] != Some(square.connect[0])
-            || diagonal_point.nearest_points[dir2.val() as usize] != Some(square.connect[1])
+        if nearest_points[dir1.val() as usize] != Some(square.connect[0])
+            || nearest_points[dir2.val() as usize] != Some(square.connect[1])
         {
             let mut performed_commands = state.perform_command(&Command::Delete {
                 square: square.clone(),
@@ -217,7 +223,7 @@ impl Neighborhood {
             let mut recursion_count: usize = 0;
             Neighborhood::attempt_multiple_add(
                 state,
-                &diagonal_point.pos,
+                &square.diagonal,
                 &mut recursion_count,
                 &MULTIPLE_ADD_RECURSION_LIMIT,
                 &mut performed_commands,

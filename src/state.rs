@@ -70,8 +70,14 @@ impl State {
         assert!(self.grid.has_point(&square.new_pos));
 
         // new_posの点を使って作られた四角を再帰的に消す
-        let point = self.grid.point(&square.new_pos).as_ref().unwrap().clone();
-        for created_point in &point.created_points {
+        let created_points = self
+            .grid
+            .point(&square.new_pos)
+            .as_ref()
+            .unwrap()
+            .created_points
+            .clone();
+        for created_point in &created_points {
             // 再帰的に処理する場合、既に削除されている時があるので、その時は何もしない
             // TODO: 正当性の確認
             if !self.grid.has_point(&created_point) {
