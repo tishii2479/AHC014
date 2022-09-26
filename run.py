@@ -2,7 +2,7 @@ import multiprocessing
 import pipes
 import subprocess
 
-CASE = 500
+CASE = 100
 TL = 6.0
 
 

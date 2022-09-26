@@ -40,10 +40,9 @@ pub struct Square {
     pub connect: [Pos; 2],
 }
 
-pub static mut SQUARE_COUNTER: i64 = 0;
-
 impl Square {
     pub fn new(new_pos: Pos, diagonal: Pos, connect: [Pos; 2]) -> Square {
+        static mut SQUARE_COUNTER: i64 = 0;
         unsafe {
             SQUARE_COUNTER += 1;
         }
