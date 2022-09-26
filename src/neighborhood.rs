@@ -30,6 +30,7 @@ impl Neighborhood {
             &mut recursion_count,
             &MULTIPLE_ADD_RECURSION_LIMIT,
             &mut performed_commands,
+            state.get_score(1.),
         );
         performed_commands
     }
@@ -40,7 +41,11 @@ impl Neighborhood {
         recursion_count: &mut usize,
         recursion_limit: &usize,
         performed_commands: &mut Vec<Command>,
+        start_score: f64,
     ) {
+        if state.get_score(1.) > start_score {
+            return;
+        }
         if *recursion_count >= *recursion_limit {
             return;
         }
@@ -59,6 +64,7 @@ impl Neighborhood {
                     recursion_count,
                     recursion_limit,
                     performed_commands,
+                    start_score,
                 );
             }
         }
@@ -145,6 +151,7 @@ impl Neighborhood {
     }
 
     fn attempt_change_square(state: &mut State, square: &Square) -> Vec<Command> {
+        let start_score = state.get_score(1.);
         let mut performed_commands = state.perform_command(&Command::Delete {
             square: square.clone(),
         });
@@ -166,6 +173,7 @@ impl Neighborhood {
             &mut recursion_count,
             &MULTIPLE_ADD_RECURSION_LIMIT,
             &mut performed_commands,
+            start_score,
         );
         return performed_commands;
     }
