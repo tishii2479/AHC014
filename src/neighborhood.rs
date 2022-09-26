@@ -201,25 +201,16 @@ impl Neighborhood {
             if performed_commands.len() == 0 {
                 return vec![];
             }
-            let dir = Dir::from_i64(
-                (Pos::get_dir(&square.diagonal, &square.connect[0]).val()
-                    + Pos::get_dir(&square.diagonal, &square.connect[1]).val())
-                    / 2,
-            );
-            performed_commands.append(&mut Neighborhood::attempt_add_dir(
-                state,
-                &diagonal_point,
-                &dir,
-            ));
 
-            // let mut recursion_count: usize = 0;
-            // Neighborhood::attempt_multiple_add(
-            //     state,
-            //     &diagonal_point.pos,
-            //     &mut recursion_count,
-            //     &MULTIPLE_ADD_RECURSION_LIMIT,
-            //     &mut performed_commands,
-            // );
+            let mut recursion_count: usize = 0;
+            Neighborhood::attempt_multiple_add(
+                state,
+                &diagonal_point.pos,
+                &mut recursion_count,
+                &MULTIPLE_ADD_RECURSION_LIMIT,
+                &mut performed_commands,
+                state.get_score(1.),
+            );
             return performed_commands;
         }
 
