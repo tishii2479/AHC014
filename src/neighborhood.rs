@@ -77,7 +77,13 @@ impl Neighborhood {
 
     fn attempt_add(state: &mut State, pos: &Pos, ignore_dir: Option<&Dir>) -> Vec<Command> {
         assert!(state.grid.has_point(&pos));
-        let point = state.grid.point(&pos).as_ref().unwrap().clone();
+        let nearest_points = state
+            .grid
+            .point(&pos)
+            .as_ref()
+            .unwrap()
+            .nearest_points
+            .clone();
         for _ in 0..DIR_MAX {
             let i = rnd::gen_range(0, DIR_MAX);
             let diagonal_dir = Dir::from_i64(i as i64);
@@ -86,7 +92,8 @@ impl Neighborhood {
                     continue;
                 }
             }
-            let performed_commands = Neighborhood::attempt_add_dir(state, &point, &diagonal_dir);
+            let performed_commands =
+                Neighborhood::attempt_add_dir(state, &pos, &nearest_points, &diagonal_dir);
             if performed_commands.len() > 0 {
                 return performed_commands;
             }
@@ -94,20 +101,25 @@ impl Neighborhood {
         return vec![];
     }
 
-    fn attempt_add_dir(state: &mut State, point: &Point, dir: &Dir) -> Vec<Command> {
+    fn attempt_add_dir(
+        state: &mut State,
+        pos: &Pos,
+        nearest_points: &Vec<Option<Pos>>,
+        dir: &Dir,
+    ) -> Vec<Command> {
         let dir_next = dir.next();
         let dir_prev = dir.prev();
 
         if let (Some(pos_prev), Some(pos_next)) = (
-            &point.nearest_points[dir_prev.val() as usize],
-            &point.nearest_points[dir_next.val() as usize],
+            &nearest_points[dir_prev.val() as usize],
+            &nearest_points[dir_next.val() as usize],
         ) {
-            let new_pos = pos_next + &(pos_prev - &point.pos);
+            let new_pos = pos_next + &(pos_prev - &pos);
 
             if !state.grid.is_valid(&new_pos) {
                 return vec![];
             }
-            if !state.grid.has_point(&point.pos)
+            if !state.grid.has_point(&pos)
                 || !state.grid.has_point(&pos_prev)
                 || !state.grid.has_point(&pos_next)
                 || state.grid.has_point(&new_pos)
@@ -116,7 +128,7 @@ impl Neighborhood {
             }
 
             let connect: [Pos; 2] = [pos_prev.clone(), pos_next.clone()];
-            let square = Square::new(new_pos, point.pos.clone(), connect);
+            let square = Square::new(new_pos, pos.clone(), connect);
 
             let performed_commands = state.perform_command(&Command::Add { square });
             if performed_commands.len() > 0 {
