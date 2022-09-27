@@ -6,14 +6,14 @@ pub const DIR_MAX: usize = 8;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Score {
     pub base: i64,
-    pub edge_length: i64,
+    pub additional: i64,
 }
 
 impl Score {
     pub fn new() -> Score {
         Score {
             base: 0,
-            edge_length: 0,
+            additional: 0,
         }
     }
 }
@@ -21,14 +21,14 @@ impl Score {
 impl ops::AddAssign<&Score> for Score {
     fn add_assign(&mut self, rhs: &Score) {
         self.base += rhs.base;
-        self.edge_length += rhs.edge_length;
+        self.additional += rhs.additional;
     }
 }
 
 impl ops::SubAssign<&Score> for Score {
     fn sub_assign(&mut self, rhs: &Score) {
         self.base -= rhs.base;
-        self.edge_length -= rhs.edge_length;
+        self.additional -= rhs.additional;
     }
 }
 
@@ -55,10 +55,6 @@ impl Square {
                 std::cmp::max(connect[0], connect[1]),
             ],
         }
-    }
-
-    pub fn edge_length(&self) -> i64 {
-        Pos::dist(&self.new_pos, &self.connect[0]) + Pos::dist(&self.new_pos, &self.connect[1])
     }
 
     #[allow(dead_code)]

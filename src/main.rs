@@ -96,6 +96,7 @@ impl IState for State {
     #[allow(unused_variables)]
     fn get_score(&self, progress: f64) -> f64 {
         let base_score = self.score.base as f64;
+        let additional_score = self.score.additional as f64;
         base_score
     }
 

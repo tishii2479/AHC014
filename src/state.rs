@@ -221,7 +221,7 @@ fn test_perform_recursive_delete() {
     let connect2: [Pos; 2] = [Pos { x: 2, y: 4 }, Pos { x: 4, y: 2 }];
     let new_pos = Pos { x: 2, y: 2 };
     let new_pos2 = Pos { x: 4, y: 4 };
-    let n: usize = 5;
+    let n: usize = 10;
     let p = vec![
         diagonal.clone(),
         connect[0].clone(),
