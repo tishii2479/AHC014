@@ -1,4 +1,5 @@
-const TIME_LIMIT: f64 = 4.95;
+const TIME_LIMIT: f64 = 4.98;
+const LOOP_INTERVAL: usize = 100;
 const WRITE_SCORE_LOG: bool = false;
 
 const MULTIPLE_ADD_RECURSION_LIMIT: usize = 20;
@@ -23,6 +24,11 @@ use util::*;
 #[allow(unused_variables)]
 fn calc_start_temp(n: usize, m: usize) -> f64 {
     500. * (n as f64 / 30.).powf(2.)
+}
+
+#[allow(unused_variables)]
+fn calc_end_temp(n: usize, m: usize) -> f64 {
+    25. * (n as f64 / 30.).powf(2.)
 }
 
 struct NeighborhoodSelector {
@@ -133,8 +139,11 @@ struct Solver {
 impl ISolver for Solver {
     fn solve(&mut self, time_limit: f64) {
         let mut loop_count = 0;
-        while time::elapsed_seconds() < time_limit {
-            let progress = time::elapsed_seconds() / time_limit;
+        let mut progress = time::elapsed_seconds() / time_limit;
+        while progress < 1. {
+            if loop_count % LOOP_INTERVAL == 0 {
+                progress = time::elapsed_seconds() / time_limit;
+            }
             let neighborhood = self.neighborhood_selector.select();
 
             let current_score = self.state.get_score(progress);
@@ -223,7 +232,7 @@ fn main() {
     }
 
     let start_temp: f64 = calc_start_temp(n, m);
-    let end_temp: f64 = 0.;
+    let end_temp: f64 = calc_end_temp(n, m);
 
     let state = State::new(n, p);
     let mut solver = Solver {
