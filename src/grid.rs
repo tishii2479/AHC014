@@ -21,7 +21,7 @@ impl Grid {
     }
 
     pub fn can_connect(&self, a: &Pos, b: &Pos) -> bool {
-        assert!(Pos::is_aligned(a, b));
+        debug_assert!(Pos::is_aligned(a, b));
         let dir = Pos::get_dir(a, b);
         if self.has_edge(a, &dir) {
             return false;
@@ -44,9 +44,9 @@ impl Grid {
         let dir = Pos::get_dir(a, b);
         self.add_edge(a, &dir);
         for p in Pos::between(a, b) {
-            assert!(!self.has_edge(&p, &dir));
+            debug_assert!(!self.has_edge(&p, &dir));
             if !is_reverse {
-                assert!(!self.has_point(&p));
+                debug_assert!(!self.has_point(&p));
             }
             self.add_edge(&p, &dir);
             self.add_edge(&p, &dir.rev());
@@ -58,7 +58,7 @@ impl Grid {
         let dir = Pos::get_dir(a, b);
         self.remove_edge(a, &dir);
         for p in Pos::between(a, b) {
-            assert!(self.has_edge(&p, &dir));
+            debug_assert!(self.has_edge(&p, &dir));
 
             self.remove_edge(&p, &dir);
             self.remove_edge(&p, &dir.rev());
@@ -116,7 +116,7 @@ impl Grid {
     }
 
     pub fn remove_point(&mut self, pos: &Pos) -> Score {
-        assert!(self.has_point(&pos));
+        debug_assert!(self.has_point(&pos));
 
         let score = Score::new();
 
@@ -124,7 +124,7 @@ impl Grid {
         for i in 0..DIR_MAX {
             let dir = Dir::from_i64(i as i64);
             if let Some(nearest_pos) = &nearest_points[dir.val() as usize] {
-                assert!(self.has_point(&nearest_pos));
+                debug_assert!(self.has_point(&nearest_pos));
 
                 if let Some(opposite_nearest_pos) = &nearest_points[dir.rev().val() as usize] {
                     self.point(nearest_pos).as_mut().unwrap().nearest_points
@@ -140,7 +140,7 @@ impl Grid {
     }
 
     pub fn add_point(&mut self, pos: &Pos, mut point: Point, square: Option<Square>) -> Score {
-        assert!(!self.has_point(&pos));
+        debug_assert!(!self.has_point(&pos));
 
         let score = Score::new();
 

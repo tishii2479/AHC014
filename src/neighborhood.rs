@@ -76,7 +76,7 @@ impl Neighborhood {
     }
 
     fn attempt_add(state: &mut State, pos: &Pos, ignore_dir: Option<&Dir>) -> Vec<Command> {
-        assert!(state.grid.has_point(&pos));
+        debug_assert!(state.grid.has_point(&pos));
         let nearest_points = state
             .grid
             .point(&pos)
@@ -145,7 +145,7 @@ impl Neighborhood {
     }
 
     fn attempt_delete(state: &mut State, pos: &Pos) -> Vec<Command> {
-        assert!(state.grid.has_point(&pos));
+        debug_assert!(state.grid.has_point(&pos));
         let added_info = state.grid.point(&pos).as_ref().unwrap().added_info.clone();
         if let Some(added_info) = added_info {
             return state.perform_command(&Command::Delete { square: added_info });

@@ -176,7 +176,7 @@ impl Pos {
     }
 
     pub fn get_dir(from: &Pos, to: &Pos) -> Dir {
-        assert!(Pos::is_aligned(from, to));
+        debug_assert!(Pos::is_aligned(from, to));
 
         let delta = to - from;
         if delta.y > 0 {
@@ -205,7 +205,7 @@ impl Pos {
     }
 
     pub fn between(from: &Pos, to: &Pos) -> Vec<Pos> {
-        assert!(Pos::is_aligned(from, to));
+        debug_assert!(Pos::is_aligned(from, to));
 
         let mut cur = from.clone();
         let mut ret: Vec<Pos> = vec![];

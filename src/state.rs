@@ -28,10 +28,10 @@ impl State {
 
 impl State {
     pub fn perform_add(&mut self, square: &Square, is_reverse: bool) -> Vec<Command> {
-        assert!(Pos::is_aligned(&square.diagonal, &square.connect[0]));
-        assert!(Pos::is_aligned(&square.diagonal, &square.connect[1]));
-        assert!(Pos::is_aligned(&square.new_pos, &square.connect[0]));
-        assert!(Pos::is_aligned(&square.new_pos, &square.connect[1]));
+        debug_assert!(Pos::is_aligned(&square.diagonal, &square.connect[0]));
+        debug_assert!(Pos::is_aligned(&square.diagonal, &square.connect[1]));
+        debug_assert!(Pos::is_aligned(&square.new_pos, &square.connect[0]));
+        debug_assert!(Pos::is_aligned(&square.new_pos, &square.connect[1]));
 
         // new_posに既に点がないか確認
         if self.grid.has_point(&square.new_pos) {
@@ -62,12 +62,12 @@ impl State {
     }
 
     pub fn perform_delete(&mut self, square: &Square, performed_commands: &mut Vec<Command>) {
-        assert!(Pos::is_aligned(&square.diagonal, &square.connect[0]));
-        assert!(Pos::is_aligned(&square.diagonal, &square.connect[1]));
-        assert!(Pos::is_aligned(&square.new_pos, &square.connect[0]));
-        assert!(Pos::is_aligned(&square.new_pos, &square.connect[1]));
+        debug_assert!(Pos::is_aligned(&square.diagonal, &square.connect[0]));
+        debug_assert!(Pos::is_aligned(&square.diagonal, &square.connect[1]));
+        debug_assert!(Pos::is_aligned(&square.new_pos, &square.connect[0]));
+        debug_assert!(Pos::is_aligned(&square.new_pos, &square.connect[1]));
 
-        assert!(self.grid.has_point(&square.new_pos));
+        debug_assert!(self.grid.has_point(&square.new_pos));
 
         // new_posの点を使って作られた四角を再帰的に消す
         let created_points = self
