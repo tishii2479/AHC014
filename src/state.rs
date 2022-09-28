@@ -56,9 +56,7 @@ impl State {
         // スコアの更新
         self.score.base += self.weight(&square.new_pos);
 
-        vec![Command::Add {
-            square: square.clone(),
-        }]
+        vec![Command::Add { square: *square }]
     }
 
     pub fn perform_delete(&mut self, square: &Square, performed_commands: &mut Vec<Command>) {
@@ -108,9 +106,7 @@ impl State {
                 .unwrap(),
         );
         self.score.base -= self.weight(&square.new_pos);
-        performed_commands.push(Command::Delete {
-            square: square.clone(),
-        });
+        performed_commands.push(Command::Delete { square: *square });
     }
 
     pub fn calc_deletion_size(

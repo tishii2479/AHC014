@@ -148,9 +148,7 @@ impl Neighborhood {
     }
 
     fn attempt_delete(state: &mut State, square: &Square) -> Vec<Command> {
-        state.perform_command(&Command::Delete {
-            square: square.clone(),
-        })
+        state.perform_command(&Command::Delete { square: *square })
     }
 
     fn perform_change_square(state: &mut State) -> Vec<Command> {
@@ -164,9 +162,7 @@ impl Neighborhood {
 
     fn attempt_change_square(state: &mut State, square: &Square) -> Vec<Command> {
         let start_score = state.get_score(1.);
-        let mut performed_commands = state.perform_command(&Command::Delete {
-            square: square.clone(),
-        });
+        let mut performed_commands = state.perform_command(&Command::Delete { square: *square });
 
         // 四角を消せなかったら中止
         if performed_commands.len() == 0 {
