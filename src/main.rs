@@ -135,12 +135,12 @@ struct Solver {
     neighborhood_selector: NeighborhoodSelector,
     optimizer: Optimizer,
     score_history: Vec<f64>,
-    best_state: State,
 }
 
 impl ISolver for Solver {
     fn solve(&mut self, time_limit: f64) {
         let mut loop_count = 0;
+        let mut best_state = self.state.clone();
         let mut progress = time::elapsed_seconds() / time_limit;
         while progress < 1. {
             let is_interval = (loop_count % LOOP_INTERVAL) == 0;
@@ -173,13 +173,15 @@ impl ISolver for Solver {
                 self.score_history.push(self.state.score.base as f64);
             }
             if is_interval {
-                if self.state.get_score(1.) > self.best_state.get_score(1.) {
-                    self.best_state = self.state.clone();
+                if self.state.get_score(1.) > best_state.get_score(1.) {
+                    best_state = self.state.clone();
                 }
             }
             loop_count += 1;
         }
         eprintln!("loop_count: {}", loop_count);
+
+        self.state = best_state.clone();
     }
 }
 
@@ -194,19 +196,18 @@ impl Solver {
             neighborhood_selector,
             optimizer,
             score_history: vec![],
-            best_state: state.clone(),
         }
     }
 
     fn output(&mut self) {
-        println!("{}", self.best_state.squares.len());
-        self.best_state.squares.sort_by(|a, b| a.id.cmp(&b.id));
+        println!("{}", self.state.squares.len());
+        self.state.squares.sort_by(|a, b| a.id.cmp(&b.id));
         for Square {
             id: _,
             new_pos,
             diagonal,
             connect,
-        } in &self.best_state.squares
+        } in &self.state.squares
         {
             println!(
                 "{} {} {} {} {} {} {} {}",
@@ -223,10 +224,10 @@ impl Solver {
     }
 
     fn output_statistics(&self, n: usize, m: usize) {
-        eprintln!("state_score: {}", self.best_state.get_score(1.));
+        eprintln!("state_score: {}", self.state.get_score(1.));
         eprintln!(
             "real_score: {}",
-            calc_real_score(n, m, self.best_state.score.base as i64)
+            calc_real_score(n, m, self.state.score.base as i64)
         );
         self.neighborhood_selector.output_statistics();
 
