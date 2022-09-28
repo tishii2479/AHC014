@@ -82,13 +82,29 @@ impl INeighborhoodSelector for NeighborhoodSelector {
 struct Optimizer {
     start_temp: f64,
     end_temp: f64,
+    current_temp: f64,
 }
 
 impl IOptimizer for Optimizer {
-    fn should_adopt_new_state(&self, score_diff: f64, progress: f64) -> bool {
-        let temp = self.start_temp + (self.end_temp - self.start_temp) * progress;
-        let prob = (score_diff / temp).exp();
+    fn update_temp(&mut self, progress: f64) {
+        self.current_temp = self.start_temp + (self.end_temp - self.start_temp) * progress;
+    }
+
+    fn should_adopt_new_state(&self, score_diff: f64) -> bool {
+        let prob = (score_diff / self.current_temp).exp();
         return prob > rnd::nextf();
+    }
+}
+
+impl Optimizer {
+    fn new(start_temp: f64, end_temp: f64) -> Optimizer {
+        let mut optimizer = Optimizer {
+            start_temp,
+            end_temp,
+            current_temp: 0.,
+        };
+        optimizer.update_temp(0.);
+        optimizer
     }
 }
 
@@ -146,7 +162,9 @@ impl ISolver for Solver {
             let is_interval = (loop_count % LOOP_INTERVAL) == 0;
             if is_interval {
                 progress = time::elapsed_seconds() / time_limit;
+                self.optimizer.update_temp(progress);
             }
+
             let neighborhood = self.neighborhood_selector.select();
 
             let current_score = self.state.get_score(progress);
@@ -157,7 +175,7 @@ impl ISolver for Solver {
 
             let adopt_new_state = self
                 .optimizer
-                .should_adopt_new_state(new_score - current_score, progress)
+                .should_adopt_new_state(new_score - current_score)
                 && performed_commands.len() > 0;
 
             if !adopt_new_state {
@@ -258,10 +276,7 @@ fn main() {
     let mut solver = Solver::new(
         state,
         NeighborhoodSelector::new(Neighborhood::all().len()),
-        Optimizer {
-            start_temp,
-            end_temp,
-        },
+        Optimizer::new(start_temp, end_temp),
     );
 
     solver.solve(TIME_LIMIT);

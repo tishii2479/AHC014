@@ -13,7 +13,8 @@ pub trait INeighborhoodSelector {
 }
 
 pub trait IOptimizer {
-    fn should_adopt_new_state(&self, score_diff: f64, progress: f64) -> bool;
+    fn update_temp(&mut self, progress: f64);
+    fn should_adopt_new_state(&self, score_diff: f64) -> bool;
 }
 
 pub trait ISolver {
