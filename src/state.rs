@@ -27,7 +27,7 @@ impl State {
 }
 
 impl State {
-    pub fn perform_add(&mut self, square: &Square, is_reverse: bool) -> Vec<Command> {
+    pub fn can_perform_add(&mut self, square: &Square, is_reverse: bool) -> bool {
         debug_assert!(Pos::is_aligned(&square.diagonal, &square.connect[0]));
         debug_assert!(Pos::is_aligned(&square.diagonal, &square.connect[1]));
         debug_assert!(Pos::is_aligned(&square.new_pos, &square.connect[0]));
@@ -35,7 +35,7 @@ impl State {
 
         // new_posに既に点がないか確認
         if self.grid.has_point(&square.new_pos) {
-            return vec![];
+            return false;
         }
 
         // 作ろうとしてる四角の辺に既に点、辺がないか確認する
@@ -45,6 +45,14 @@ impl State {
                 || !self.grid.can_connect(&square.connect[0], &square.diagonal)
                 || !self.grid.can_connect(&square.connect[1], &square.diagonal))
         {
+            return false;
+        }
+
+        true
+    }
+
+    pub fn perform_add(&mut self, square: &Square, is_reverse: bool) -> Vec<Command> {
+        if !self.can_perform_add(square, is_reverse) {
             return vec![];
         }
 
