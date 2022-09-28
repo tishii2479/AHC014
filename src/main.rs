@@ -60,11 +60,11 @@ impl NeighborhoodSelector {
 impl INeighborhoodSelector for NeighborhoodSelector {
     fn select(&self) -> Neighborhood {
         let p = rnd::nextf();
-        if p < 0.1 {
+        if p < 0.05 {
             Neighborhood::Delete
-        } else if p < 0.2 {
+        } else if p < 0.15 {
             Neighborhood::ChangeSquare
-        } else if p < 0.3 {
+        } else if p < 0.25 {
             Neighborhood::SplitSquare
         } else {
             Neighborhood::Add

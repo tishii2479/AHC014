@@ -140,17 +140,17 @@ impl Neighborhood {
     }
 
     fn perform_delete(state: &mut State) -> Vec<Command> {
-        let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
-        Neighborhood::attempt_delete(state, &selected_p)
+        if state.squares.len() == 0 {
+            return vec![];
+        }
+        let square = state.squares[rnd::gen_range(0, state.squares.len())];
+        Neighborhood::attempt_delete(state, &square)
     }
 
-    fn attempt_delete(state: &mut State, pos: &Pos) -> Vec<Command> {
-        debug_assert!(state.grid.has_point(&pos));
-        let added_info = state.grid.point(&pos).as_ref().unwrap().added_info.clone();
-        if let Some(added_info) = added_info {
-            return state.perform_command(&Command::Delete { square: added_info });
-        }
-        return vec![];
+    fn attempt_delete(state: &mut State, square: &Square) -> Vec<Command> {
+        state.perform_command(&Command::Delete {
+            square: square.clone(),
+        })
     }
 
     fn perform_change_square(state: &mut State) -> Vec<Command> {
