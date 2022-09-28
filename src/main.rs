@@ -135,6 +135,7 @@ struct Solver {
     neighborhood_selector: NeighborhoodSelector,
     optimizer: Optimizer,
     score_history: Vec<f64>,
+    best_state: State,
 }
 
 impl ISolver for Solver {
@@ -142,7 +143,8 @@ impl ISolver for Solver {
         let mut loop_count = 0;
         let mut progress = time::elapsed_seconds() / time_limit;
         while progress < 1. {
-            if loop_count % LOOP_INTERVAL == 0 {
+            let is_interval = (loop_count % LOOP_INTERVAL) == 0;
+            if is_interval {
                 progress = time::elapsed_seconds() / time_limit;
             }
             let neighborhood = self.neighborhood_selector.select();
@@ -167,28 +169,44 @@ impl ISolver for Solver {
             self.neighborhood_selector
                 .step(&neighborhood, adopt_new_state);
 
-            if WRITE_SCORE_LOG {
-                if loop_count % 100 == 0 {
-                    self.score_history.push(self.state.score.base as f64);
+            if WRITE_SCORE_LOG && is_interval {
+                self.score_history.push(self.state.score.base as f64);
+            }
+            if is_interval {
+                if self.state.get_score(1.) > self.best_state.get_score(1.) {
+                    self.best_state = self.state.clone();
                 }
             }
             loop_count += 1;
         }
-
         eprintln!("loop_count: {}", loop_count);
     }
 }
 
 impl Solver {
+    fn new(
+        state: State,
+        neighborhood_selector: NeighborhoodSelector,
+        optimizer: Optimizer,
+    ) -> Solver {
+        Solver {
+            state: state.clone(),
+            neighborhood_selector,
+            optimizer,
+            score_history: vec![],
+            best_state: state.clone(),
+        }
+    }
+
     fn output(&mut self) {
-        println!("{}", self.state.squares.len());
-        self.state.squares.sort_by(|a, b| a.id.cmp(&b.id));
+        println!("{}", self.best_state.squares.len());
+        self.best_state.squares.sort_by(|a, b| a.id.cmp(&b.id));
         for Square {
             id: _,
             new_pos,
             diagonal,
             connect,
-        } in &self.state.squares
+        } in &self.best_state.squares
         {
             println!(
                 "{} {} {} {} {} {} {} {}",
@@ -205,10 +223,10 @@ impl Solver {
     }
 
     fn output_statistics(&self, n: usize, m: usize) {
-        eprintln!("state_score: {}", self.state.get_score(1.));
+        eprintln!("state_score: {}", self.best_state.get_score(1.));
         eprintln!(
             "real_score: {}",
-            calc_real_score(n, m, self.state.score.base as i64)
+            calc_real_score(n, m, self.best_state.score.base as i64)
         );
         self.neighborhood_selector.output_statistics();
 
@@ -236,15 +254,14 @@ fn main() {
     let end_temp: f64 = calc_end_temp(n, m);
 
     let state = State::new(n, p);
-    let mut solver = Solver {
+    let mut solver = Solver::new(
         state,
-        neighborhood_selector: NeighborhoodSelector::new(Neighborhood::all().len()),
-        optimizer: Optimizer {
+        NeighborhoodSelector::new(Neighborhood::all().len()),
+        Optimizer {
             start_temp,
             end_temp,
         },
-        score_history: vec![],
-    };
+    );
 
     solver.solve(TIME_LIMIT);
     solver.output();

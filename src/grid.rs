@@ -66,6 +66,7 @@ impl Grid {
         self.remove_edge(b, &dir.rev());
     }
 
+    #[allow(dead_code)]
     pub fn calc_square_penalty(&self, _square: &Square) -> Score {
         let score = Score::new();
         score

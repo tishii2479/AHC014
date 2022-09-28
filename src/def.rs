@@ -58,6 +58,11 @@ impl Square {
     }
 
     #[allow(dead_code)]
+    pub fn size(&self) -> i64 {
+        Pos::dist(&self.new_pos, &self.connect[0]) + Pos::dist(&self.new_pos, &self.connect[1])
+    }
+
+    #[allow(dead_code)]
     pub fn all_pos(&self) -> [&Pos; 4] {
         [
             &self.new_pos,
