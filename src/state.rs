@@ -27,6 +27,14 @@ impl State {
 }
 
 impl State {
+    pub fn select_pos(&self) -> Pos {
+        self.points[rnd::gen_range(0, self.points.len()) as usize]
+    }
+
+    pub fn select_square(&self) -> Square {
+        self.squares[rnd::gen_range(0, self.squares.len())]
+    }
+
     pub fn can_perform_add(&mut self, square: &Square, is_reverse: bool) -> bool {
         debug_assert!(Pos::is_aligned(&square.diagonal, &square.connect[0]));
         debug_assert!(Pos::is_aligned(&square.diagonal, &square.connect[1]));

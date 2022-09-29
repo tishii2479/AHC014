@@ -4,7 +4,7 @@ use crate::*;
 pub enum Neighborhood {
     Add = 0,
     Delete = 1,
-    ChangeSquare = 2,
+    DeleteAdd = 2,
     SplitSquare = 3,
     MultipleAdd = 4,
 }
@@ -14,14 +14,14 @@ impl Neighborhood {
         match self {
             Neighborhood::Add => Neighborhood::perform_add(state),
             Neighborhood::Delete => Neighborhood::perform_delete(state),
-            Neighborhood::ChangeSquare => Neighborhood::perform_change_square(state),
+            Neighborhood::DeleteAdd => Neighborhood::perform_delete_add(state),
             Neighborhood::SplitSquare => Neighborhood::perform_split_square(state),
             Neighborhood::MultipleAdd => Neighborhood::perform_multiple_add(state),
         }
     }
 
     fn perform_multiple_add(state: &mut State) -> Vec<Command> {
-        let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
+        let selected_p = state.select_pos();
         let mut performed_commands = vec![];
         let mut recursion_count = 0;
         Neighborhood::attempt_multiple_add(
@@ -71,7 +71,7 @@ impl Neighborhood {
     }
 
     fn perform_add(state: &mut State) -> Vec<Command> {
-        let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
+        let selected_p = state.select_pos();
         Neighborhood::attempt_add(state, &selected_p, None)
     }
 
@@ -143,7 +143,7 @@ impl Neighborhood {
         if state.squares.len() == 0 {
             return vec![];
         }
-        let square = state.squares[rnd::gen_range(0, state.squares.len())];
+        let square = state.select_square();
         Neighborhood::attempt_delete(state, &square)
     }
 
@@ -151,16 +151,16 @@ impl Neighborhood {
         state.perform_command(&Command::Delete { square: *square })
     }
 
-    fn perform_change_square(state: &mut State) -> Vec<Command> {
+    fn perform_delete_add(state: &mut State) -> Vec<Command> {
         // 四角を作っている点を探す
         if state.squares.len() == 0 {
             return vec![];
         }
-        let square = state.squares[rnd::gen_range(0, state.squares.len()) as usize];
-        Neighborhood::attempt_change_square(state, &square)
+        let square = state.select_square();
+        Neighborhood::attempt_delete_add(state, &square)
     }
 
-    fn attempt_change_square(state: &mut State, square: &Square) -> Vec<Command> {
+    fn attempt_delete_add(state: &mut State, square: &Square) -> Vec<Command> {
         let start_score = state.get_score(1.);
         let mut performed_commands = state.perform_command(&Command::Delete { square: *square });
 
@@ -190,7 +190,7 @@ impl Neighborhood {
         if state.squares.len() == 0 {
             return vec![];
         }
-        let selected_square = state.squares[rnd::gen_range(0, state.squares.len()) as usize];
+        let selected_square = state.select_square();
         Neighborhood::attempt_split_square(state, &selected_square)
     }
 
@@ -238,7 +238,7 @@ impl Neighborhood {
         [
             Neighborhood::Add,
             Neighborhood::Delete,
-            Neighborhood::ChangeSquare,
+            Neighborhood::DeleteAdd,
             Neighborhood::SplitSquare,
             Neighborhood::MultipleAdd,
         ]
@@ -248,7 +248,7 @@ impl Neighborhood {
         match v {
             0 => Neighborhood::Add,
             1 => Neighborhood::Delete,
-            2 => Neighborhood::ChangeSquare,
+            2 => Neighborhood::DeleteAdd,
             3 => Neighborhood::SplitSquare,
             4 => Neighborhood::MultipleAdd,
             _ => panic!("Neighborhood value {} is invalid.", v),
@@ -306,7 +306,7 @@ fn test_change_square() {
         square: square.clone(),
     });
     let copied_state = state.clone();
-    let performed_commands = Neighborhood::attempt_change_square(&mut state, &square);
+    let performed_commands = Neighborhood::attempt_delete_add(&mut state, &square);
 
     // multiple_addが不定なので消す
     // Squareのidは異なってしまう

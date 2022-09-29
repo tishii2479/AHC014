@@ -1,3 +1,4 @@
+use crate::*;
 use proconio::derive_readable;
 use std::ops;
 
@@ -321,6 +322,36 @@ impl Point {
             created_points: vec![],
             used_dir: [false; DIR_MAX],
             added_info: None,
+        }
+    }
+}
+
+struct SmallState {
+    pub start_score: f64,
+    pub loop_count: usize,
+    pub points: Vec<Pos>,
+    pub squares: Vec<Square>,
+}
+
+impl SmallState {
+    fn new(state: &mut State) -> SmallState {
+        let pos = state.points[rnd::gen_range(0, state.points.len())];
+        let mut points = vec![];
+        state
+            .grid
+            .collect_near_points(&pos, &mut points, NEAR_POINT_SIZE);
+        let mut squares = vec![];
+        for pos in &points {
+            if let Some(square) = state.grid.point(pos).as_ref().unwrap().added_info {
+                squares.push(square);
+            }
+        }
+
+        SmallState {
+            start_score: state.get_score(1.),
+            loop_count: 0,
+            points,
+            squares,
         }
     }
 }

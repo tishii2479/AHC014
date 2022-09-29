@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use crate::def::*;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -190,6 +192,30 @@ impl Grid {
             }
         }
         return None;
+    }
+
+    pub fn collect_near_points(
+        &mut self,
+        pos: &Pos,
+        near_points: &mut Vec<Pos>,
+        near_point_size: usize,
+    ) {
+        let mut q = VecDeque::new();
+        q.push_back(pos.clone());
+        near_points.push(pos.clone());
+
+        while q.front().is_some() && near_points.len() < near_point_size {
+            let p = q.pop_front().unwrap();
+            for near_point in self.point(&p).as_ref().unwrap().nearest_points.clone() {
+                if let Some(near_pos) = near_point {
+                    if near_points.contains(&near_pos) {
+                        continue;
+                    }
+                    q.push_back(near_pos.clone());
+                    near_points.push(near_pos.clone());
+                }
+            }
+        }
     }
 
     fn unregister_created_points(&mut self, a: &Pos, target: &Pos) {

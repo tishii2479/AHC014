@@ -4,6 +4,8 @@ const WRITE_SCORE_LOG: bool = false;
 
 const MULTIPLE_ADD_RECURSION_LIMIT: usize = 20;
 const DELETION_RECURSION_LIMIT: usize = 10;
+const NEAR_POINT_SIZE: usize = 20;
+const SMALL_ANNEAL_LOOP_LIMIT: usize = 1000;
 
 mod def; // expand
 mod framework; // expand
@@ -63,7 +65,7 @@ impl INeighborhoodSelector for NeighborhoodSelector {
         if p < 0.05 {
             Neighborhood::Delete
         } else if p < 0.15 {
-            Neighborhood::ChangeSquare
+            Neighborhood::DeleteAdd
         } else if p < 0.25 {
             Neighborhood::SplitSquare
         } else {
