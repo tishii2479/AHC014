@@ -194,7 +194,6 @@ impl Grid {
 
     fn unregister_created_points(&mut self, a: &Pos, target: &Pos) {
         let created_points = &self.point(&a).as_mut().unwrap().created_points;
-        // FIXME: O(n)
         let target_index = created_points.iter().position(|x| *x == *target).unwrap();
         self.point(&a)
             .as_mut()
