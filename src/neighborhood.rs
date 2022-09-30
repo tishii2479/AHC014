@@ -174,15 +174,31 @@ impl Neighborhood {
             return performed_commands;
         }
 
-        let mut recursion_count: usize = 0;
-        Neighborhood::attempt_multiple_add(
-            state,
-            &square.diagonal,
-            &mut recursion_count,
-            &MULTIPLE_ADD_RECURSION_LIMIT,
-            &mut performed_commands,
-            start_score,
-        );
+        let mut best_score = 0.;
+        let mut best_commands = performed_commands.clone();
+        for _ in 0..10 {
+            let mut recursion_count: usize = 0;
+            let mut add_commands = vec![];
+            Neighborhood::attempt_multiple_add(
+                state,
+                &square.diagonal,
+                &mut recursion_count,
+                &MULTIPLE_ADD_RECURSION_LIMIT,
+                &mut add_commands,
+                start_score,
+            );
+            if state.get_score(1.) > best_score {
+                best_score = state.get_score(1.);
+                best_commands = add_commands.clone();
+            }
+            for command in add_commands.iter().rev() {
+                state.reverse_command(command)
+            }
+        }
+        for command in &best_commands {
+            state.perform_command(command);
+        }
+        performed_commands.append(&mut best_commands);
         return performed_commands;
     }
 
@@ -217,15 +233,31 @@ impl Neighborhood {
                 return vec![];
             }
 
-            let mut recursion_count: usize = 0;
-            Neighborhood::attempt_multiple_add(
-                state,
-                &square.diagonal,
-                &mut recursion_count,
-                &MULTIPLE_ADD_RECURSION_LIMIT,
-                &mut performed_commands,
-                start_score,
-            );
+            let mut best_score = 0.;
+            let mut best_commands = performed_commands.clone();
+            for _ in 0..10 {
+                let mut recursion_count: usize = 0;
+                let mut add_commands = vec![];
+                Neighborhood::attempt_multiple_add(
+                    state,
+                    &square.diagonal,
+                    &mut recursion_count,
+                    &MULTIPLE_ADD_RECURSION_LIMIT,
+                    &mut add_commands,
+                    start_score,
+                );
+                if state.get_score(1.) > best_score {
+                    best_score = state.get_score(1.);
+                    best_commands = add_commands.clone();
+                }
+                for command in add_commands.iter().rev() {
+                    state.reverse_command(command)
+                }
+            }
+            for command in &best_commands {
+                state.perform_command(command);
+            }
+            performed_commands.append(&mut best_commands);
             return performed_commands;
         }
 
