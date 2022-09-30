@@ -66,6 +66,8 @@ impl INeighborhoodSelector for NeighborhoodSelector {
             Neighborhood::ChangeSquare
         } else if p < 0.25 {
             Neighborhood::SplitSquare
+        } else if p < 0.3 {
+            Neighborhood::RecursiveAdd
         } else {
             Neighborhood::Add
         }

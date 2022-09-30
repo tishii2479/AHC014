@@ -7,6 +7,7 @@ pub enum Neighborhood {
     ChangeSquare = 2,
     SplitSquare = 3,
     MultipleAdd = 4,
+    RecursiveAdd = 5,
 }
 
 impl Neighborhood {
@@ -17,6 +18,7 @@ impl Neighborhood {
             Neighborhood::ChangeSquare => Neighborhood::perform_change_square(state),
             Neighborhood::SplitSquare => Neighborhood::perform_split_square(state),
             Neighborhood::MultipleAdd => Neighborhood::perform_multiple_add(state),
+            Neighborhood::RecursiveAdd => Neighborhood::perform_recursive_add(state),
         }
     }
 
@@ -231,16 +233,122 @@ impl Neighborhood {
 
         vec![]
     }
+
+    fn perform_recursive_add(state: &mut State) -> Vec<Command> {
+        let x = rnd::gen_range(state.grid.size / 4, state.grid.size / 2) as i64
+            * (if rnd::gen_range(0, 2) == 0 {
+                1 as i64
+            } else {
+                -1 as i64
+            })
+            + state.grid.size as i64 / 2;
+        let y = rnd::gen_range(state.grid.size / 4, state.grid.size / 2) as i64
+            * (if rnd::gen_range(0, 2) == 0 {
+                1 as i64
+            } else {
+                -1 as i64
+            })
+            + state.grid.size as i64 / 2;
+        let pos = Pos { x, y };
+        Neighborhood::attempt_add_recursive(state, &pos)
+    }
+
+    fn attempt_add_recursive(state: &mut State, pos: &Pos) -> Vec<Command> {
+        let mut required: Vec<Pos> = vec![];
+        let mut performed_commands: Vec<Command> = vec![];
+        let mut recursion_count: usize = 0;
+
+        Neighborhood::recursive_add(
+            state,
+            pos,
+            &mut required,
+            &mut performed_commands,
+            &mut recursion_count,
+            &MULTIPLE_ADD_RECURSION_LIMIT,
+        );
+
+        // if performed_commands.len() > 10 {
+        // eprintln!("{:?}, {}", pos, performed_commands.len());
+        // eprintln!("{:?}", performed_commands);
+        // }
+
+        performed_commands
+    }
+
+    fn recursive_add(
+        state: &mut State,
+        pos: &Pos,
+        required: &mut Vec<Pos>,
+        performed_commands: &mut Vec<Command>,
+        recursion_count: &mut usize,
+        recursion_limit: &usize,
+    ) -> bool {
+        if *recursion_count >= *recursion_limit {
+            return false;
+        }
+        *recursion_count += 1;
+
+        for _ in 0..DIR_MAX * 10 {
+            let i = rnd::gen_range(0, DIR_MAX);
+            let dir = Dir::from_i64(i as i64);
+
+            if let (Some(pos_prev), Some(pos_next)) = (
+                state.grid.nearest_point_pos(pos, &dir.prev()),
+                state.grid.nearest_point_pos(pos, &dir.next()),
+            ) {
+                let pos_required = &(&pos_prev + &pos_next) - pos;
+                if !state.grid.is_valid(&pos_required) {
+                    continue;
+                }
+                let square = Square::new(
+                    pos.clone(),
+                    pos_required.clone(),
+                    [pos_prev.clone(), pos_next.clone()],
+                );
+
+                if state.can_perform_add(&square, false) {
+                    continue;
+                }
+
+                let command = Command::Add { square };
+
+                if state.grid.has_point(&pos_required) {
+                    state.perform_command(&command);
+                    performed_commands.push(command);
+                    return true;
+                }
+                if required.contains(&pos_required) {
+                    continue;
+                }
+                required.push(pos_required);
+
+                if Neighborhood::recursive_add(
+                    state,
+                    &pos_required,
+                    required,
+                    performed_commands,
+                    recursion_count,
+                    recursion_limit,
+                ) {
+                    state.perform_command(&command);
+                    performed_commands.push(command);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
 
 impl Neighborhood {
-    pub fn all() -> [Neighborhood; 5] {
+    pub fn all() -> [Neighborhood; 6] {
         [
             Neighborhood::Add,
             Neighborhood::Delete,
             Neighborhood::ChangeSquare,
             Neighborhood::SplitSquare,
             Neighborhood::MultipleAdd,
+            Neighborhood::RecursiveAdd,
         ]
     }
 
@@ -251,34 +359,58 @@ impl Neighborhood {
             2 => Neighborhood::ChangeSquare,
             3 => Neighborhood::SplitSquare,
             4 => Neighborhood::MultipleAdd,
+            5 => Neighborhood::RecursiveAdd,
             _ => panic!("Neighborhood value {} is invalid.", v),
         }
     }
 }
 
 #[test]
-fn test_split_square() {
-    let diagonal = Pos { x: 0, y: 0 };
-    let connect: [Pos; 2] = [Pos { x: 2, y: 0 }, Pos { x: 0, y: 2 }];
-    let new_pos = Pos { x: 2, y: 2 };
-    let add_pos = Pos { x: 1, y: 0 };
-    let connect2: [Pos; 2] = [Pos { x: 1, y: 0 }, Pos { x: 0, y: 2 }];
-    let new_pos2 = Pos { x: 1, y: 2 };
+fn test_add_recursive() {
+    let p = vec![
+        Pos { x: 1, y: 0 },
+        Pos { x: 0, y: 1 },
+        Pos { x: 2, y: 1 },
+        Pos { x: 1, y: 2 },
+        Pos { x: 3, y: 2 },
+        Pos { x: 2, y: 3 },
+        Pos { x: 3, y: 3 },
+    ];
     let n: usize = 5;
-    let p = vec![diagonal.clone(), connect[0].clone(), connect[1].clone()];
-
-    let square = Square::new(new_pos.clone(), diagonal.clone(), connect.clone());
     let mut state = State::new(n, p);
-    state.perform_add(&square, false);
-    state
-        .grid
-        .add_point(&add_pos, Point::new(&add_pos, true), None);
+    let commands = Neighborhood::attempt_add_recursive(&mut state, &Pos { x: 0, y: 0 });
 
-    Neighborhood::attempt_split_square(&mut state, &square);
+    assert_eq!(commands.len(), 3);
+}
 
-    let mut square = Square::new(new_pos2.clone(), diagonal.clone(), connect2.clone());
-    square.id = state.squares[0].id;
-    assert_eq!(state.squares[0], square);
+#[test]
+fn test_split_square() {
+    loop {
+        let diagonal = Pos { x: 0, y: 0 };
+        let connect: [Pos; 2] = [Pos { x: 2, y: 0 }, Pos { x: 0, y: 2 }];
+        let new_pos = Pos { x: 2, y: 2 };
+        let add_pos = Pos { x: 1, y: 0 };
+        let connect2: [Pos; 2] = [Pos { x: 1, y: 0 }, Pos { x: 0, y: 2 }];
+        let new_pos2 = Pos { x: 1, y: 2 };
+        let n: usize = 5;
+        let p = vec![diagonal.clone(), connect[0].clone(), connect[1].clone()];
+
+        let square = Square::new(new_pos.clone(), diagonal.clone(), connect.clone());
+        let mut state = State::new(n, p);
+        state.perform_add(&square, false);
+        state
+            .grid
+            .add_point(&add_pos, Point::new(&add_pos, true), None);
+
+        Neighborhood::attempt_split_square(&mut state, &square);
+
+        let mut square = Square::new(new_pos2.clone(), diagonal.clone(), connect2.clone());
+        if state.squares.len() > 0 {
+            square.id = state.squares[0].id;
+            assert_eq!(state.squares[0], square);
+            break;
+        }
+    }
 }
 
 #[test]
