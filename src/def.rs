@@ -6,14 +6,14 @@ pub const DIR_MAX: usize = 8;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Score {
     pub base: i64,
-    pub additional: i64,
+    pub edge_penalty: i64,
 }
 
 impl Score {
     pub fn new() -> Score {
         Score {
             base: 0,
-            additional: 0,
+            edge_penalty: 0,
         }
     }
 }
@@ -21,14 +21,14 @@ impl Score {
 impl ops::AddAssign<&Score> for Score {
     fn add_assign(&mut self, rhs: &Score) {
         self.base += rhs.base;
-        self.additional += rhs.additional;
+        self.edge_penalty += rhs.edge_penalty;
     }
 }
 
 impl ops::SubAssign<&Score> for Score {
     fn sub_assign(&mut self, rhs: &Score) {
         self.base -= rhs.base;
-        self.additional -= rhs.additional;
+        self.edge_penalty -= rhs.edge_penalty;
     }
 }
 
@@ -300,8 +300,6 @@ impl ops::Sub<&Pos> for &Pos {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Point {
     pub pos: Pos,
-    // 追加された点かどうか
-    pub is_added: bool,
     // 各方向にある最も近い点
     pub nearest_points: [Option<Pos>; DIR_MAX],
     // その点を使って作った点
@@ -313,10 +311,9 @@ pub struct Point {
 }
 
 impl Point {
-    pub fn new(pos: &Pos, is_added: bool) -> Point {
+    pub fn new(pos: &Pos) -> Point {
         Point {
             pos: pos.clone(),
-            is_added,
             nearest_points: [None; DIR_MAX],
             created_points: vec![],
             used_dir: [false; DIR_MAX],

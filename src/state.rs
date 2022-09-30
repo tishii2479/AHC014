@@ -18,7 +18,7 @@ impl State {
             score: Score::new(),
         };
         for pos in p.iter() {
-            state.score += &state.grid.add_point(pos, Point::new(&pos, false), None);
+            state.score += &state.grid.add_point(pos, Point::new(&pos), None);
             state.points.push(pos.clone());
             state.score.base += state.weight(&pos);
         }
@@ -165,12 +165,8 @@ fn test_calc_point_closeness() {
     let new_pos2 = Pos { x: 1, y: 1 };
 
     let copied_state = state.clone();
-    state.score += &state
-        .grid
-        .add_point(&new_pos, Point::new(&new_pos, true), None);
-    state.score += &state
-        .grid
-        .add_point(&new_pos2, Point::new(&new_pos2, true), None);
+    state.score += &state.grid.add_point(&new_pos, Point::new(&new_pos), None);
+    state.score += &state.grid.add_point(&new_pos2, Point::new(&new_pos2), None);
     state.score += &state.grid.remove_point(&new_pos2);
     state.score += &state.grid.remove_point(&new_pos);
 
@@ -238,8 +234,11 @@ fn test_perform_recursive_delete() {
     let square = Square::new(new_pos.clone(), diagonal.clone(), connect.clone());
     let square2 = Square::new(new_pos2.clone(), new_pos.clone(), connect2.clone());
     state.perform_add(&square, false);
+    eprintln!("{}", state.score.edge_penalty);
     state.perform_add(&square2, false);
+    eprintln!("{}", state.score.edge_penalty);
     state.perform_delete(&square, &mut vec![]);
+    eprintln!("{}", state.score.edge_penalty);
 
     assert_eq!(state, copied_state);
 }
@@ -263,8 +262,8 @@ fn test_perform_add() {
     assert_eq!(state.perform_add(&square, false).len(), 1);
     assert!(state.grid.point(&new_pos).is_some());
 
-    assert!(state.grid.has_edge(&Pos { x: 1, y: 2 }, &Dir::Left));
-    assert!(state.grid.has_edge(&Pos { x: 1, y: 2 }, &Dir::Right));
+    assert!(state.grid.edge_count(&Pos { x: 1, y: 2 }, &Dir::Left) == 1);
+    assert!(state.grid.edge_count(&Pos { x: 1, y: 2 }, &Dir::Right) == 1);
 
     match state.grid.point(&connect[0]) {
         Some(point_other) => {

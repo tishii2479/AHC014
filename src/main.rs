@@ -1,9 +1,10 @@
 const TIME_LIMIT: f64 = 4.98;
 const LOOP_INTERVAL: usize = 100;
-const WRITE_SCORE_LOG: bool = false;
+const WRITE_SCORE_LOG: bool = true;
 
 const MULTIPLE_ADD_RECURSION_LIMIT: usize = 20;
 const DELETION_RECURSION_LIMIT: usize = 10;
+const EDGE_PENALTY: f64 = 1e12;
 
 mod def; // expand
 mod framework; // expand
@@ -62,10 +63,10 @@ impl INeighborhoodSelector for NeighborhoodSelector {
         let p = rnd::nextf();
         if p < 0.05 {
             Neighborhood::Delete
-        } else if p < 0.15 {
-            Neighborhood::ChangeSquare
-        } else if p < 0.25 {
-            Neighborhood::SplitSquare
+        // } else if p < 0.15 {
+        //     Neighborhood::ChangeSquare
+        // } else if p < 0.25 {
+        //     Neighborhood::SplitSquare
         } else {
             Neighborhood::Add
         }
@@ -112,8 +113,8 @@ impl IState for State {
     #[allow(unused_variables)]
     fn get_score(&self, progress: f64) -> f64 {
         let base_score = self.score.base as f64;
-        let additional_score = self.score.additional as f64;
-        base_score
+        let edge_penalty_score = (self.score.edge_penalty as f64) * EDGE_PENALTY * progress;
+        base_score - edge_penalty_score
     }
 
     fn perform_command(&mut self, command: &Command) -> Vec<Command> {
@@ -191,7 +192,9 @@ impl ISolver for Solver {
                 self.score_history.push(self.state.score.base as f64);
             }
             if is_interval {
-                if self.state.get_score(1.) > best_state.get_score(1.) {
+                if self.state.score.edge_penalty == 0
+                    && self.state.score.base > best_state.score.base
+                {
                     best_state = self.state.clone();
                 }
             }

@@ -4,7 +4,7 @@ use crate::def::*;
 pub struct Grid {
     pub size: usize,
     pub points: Vec<Vec<Option<Point>>>,
-    pub edges: Vec<Vec<Vec<bool>>>,
+    pub edges: Vec<Vec<Vec<usize>>>,
 }
 
 impl Grid {
@@ -12,7 +12,7 @@ impl Grid {
         Grid {
             size: n,
             points: vec![vec![None; n]; n],
-            edges: vec![vec![vec![false; DIR_MAX]; n]; n],
+            edges: vec![vec![vec![0; DIR_MAX]; n]; n],
         }
     }
 
@@ -22,53 +22,66 @@ impl Grid {
 
     pub fn can_connect(&self, a: &Pos, b: &Pos) -> bool {
         debug_assert!(Pos::is_aligned(a, b));
-        let dir = Pos::get_dir(a, b);
-        if self.has_edge(a, &dir) {
-            return false;
-        }
         for p in Pos::between(a, b) {
             if self.has_point(&p) {
                 return false;
             }
-            if self.has_edge(&p, &dir) || self.has_edge(&p, &dir.rev()) {
-                return false;
-            }
-        }
-        if self.has_edge(b, &dir.rev()) {
-            return false;
         }
         return true;
     }
 
-    fn connect(&mut self, a: &Pos, b: &Pos, is_reverse: bool) {
+    fn connect(&mut self, a: &Pos, b: &Pos, is_reverse: bool) -> Score {
+        let mut score = Score::new();
         let dir = Pos::get_dir(a, b);
-        self.add_edge(a, &dir);
-        for p in Pos::between(a, b) {
-            debug_assert!(!self.has_edge(&p, &dir));
+        if self.edge_count(&a, &dir) >= 1 {
+            score.edge_penalty += 1;
+        }
+        self.add_edge(&a, &dir);
+        for p in Pos::between(&a, &b) {
             if !is_reverse {
                 debug_assert!(!self.has_point(&p));
             }
+
+            if self.edge_count(&p, &dir) >= 1 {
+                score.edge_penalty += 1;
+            }
             self.add_edge(&p, &dir);
+
+            if self.edge_count(&p, &dir.rev()) >= 1 {
+                score.edge_penalty += 1;
+            }
             self.add_edge(&p, &dir.rev());
         }
-        self.add_edge(b, &dir.rev());
+        if self.edge_count(&b, &dir.rev()) >= 1 {
+            score.edge_penalty += 1;
+        }
+        self.add_edge(&b, &dir.rev());
+        score
     }
 
-    fn disconnect(&mut self, a: &Pos, b: &Pos) {
-        let dir = Pos::get_dir(a, b);
-        self.remove_edge(a, &dir);
+    fn disconnect(&mut self, a: &Pos, b: &Pos) -> Score {
+        let mut score = Score::new();
+        let dir = Pos::get_dir(&a, &b);
+        if self.edge_count(&a, &dir) >= 2 {
+            score.edge_penalty -= 1;
+        }
+        self.remove_edge(&a, &dir);
         for p in Pos::between(a, b) {
-            debug_assert!(self.has_edge(&p, &dir));
+            debug_assert!(self.edge_count(&p, &dir) > 0);
 
+            if self.edge_count(&p, &dir) >= 2 {
+                score.edge_penalty -= 1;
+            }
             self.remove_edge(&p, &dir);
+            if self.edge_count(&p, &dir.rev()) >= 2 {
+                score.edge_penalty -= 1;
+            }
             self.remove_edge(&p, &dir.rev());
         }
-        self.remove_edge(b, &dir.rev());
-    }
-
-    #[allow(dead_code)]
-    pub fn calc_square_penalty(&self, _square: &Square) -> Score {
-        let score = Score::new();
+        if self.edge_count(&b, &dir.rev()) >= 2 {
+            score.edge_penalty -= 1;
+        }
+        self.remove_edge(&b, &dir.rev());
         score
     }
 
@@ -76,22 +89,20 @@ impl Grid {
         // 点を追加する
         let mut score = self.add_point(
             &square.new_pos,
-            Point::new(&square.new_pos, true),
+            Point::new(&square.new_pos),
             Some(square.clone()),
         );
 
         // 辺を追加する
-        self.connect(&square.connect[0], &square.new_pos, is_reverse);
-        self.connect(&square.connect[1], &square.new_pos, is_reverse);
-        self.connect(&square.connect[0], &square.diagonal, is_reverse);
-        self.connect(&square.connect[1], &square.diagonal, is_reverse);
+        score += &self.connect(&square.connect[0], &square.new_pos, is_reverse);
+        score += &self.connect(&square.connect[1], &square.new_pos, is_reverse);
+        score += &self.connect(&square.connect[0], &square.diagonal, is_reverse);
+        score += &self.connect(&square.connect[1], &square.diagonal, is_reverse);
 
         // 使った点を登録する
         self.register_created_points(&square.connect[0], &square.new_pos);
         self.register_created_points(&square.connect[1], &square.new_pos);
         self.register_created_points(&square.diagonal, &square.new_pos);
-
-        score += &self.calc_square_penalty(square);
 
         score
     }
@@ -101,17 +112,15 @@ impl Grid {
         let mut score = self.remove_point(&square.new_pos);
 
         // 辺を削除する
-        self.disconnect(&square.connect[0], &square.new_pos);
-        self.disconnect(&square.connect[1], &square.new_pos);
-        self.disconnect(&square.connect[0], &square.diagonal);
-        self.disconnect(&square.connect[1], &square.diagonal);
+        score += &self.disconnect(&square.connect[0], &square.new_pos);
+        score += &self.disconnect(&square.connect[1], &square.new_pos);
+        score += &self.disconnect(&square.connect[0], &square.diagonal);
+        score += &self.disconnect(&square.connect[1], &square.diagonal);
 
         // 使った点の登録を消す
         self.unregister_created_points(&square.connect[0], &square.new_pos);
         self.unregister_created_points(&square.connect[1], &square.new_pos);
         self.unregister_created_points(&square.diagonal, &square.new_pos);
-
-        score -= &self.calc_square_penalty(square);
 
         score
     }
@@ -161,18 +170,19 @@ impl Grid {
     }
 
     fn add_edge(&mut self, pos: &Pos, dir: &Dir) {
-        self.edges[pos.y as usize][pos.x as usize][dir.val() as usize] = true;
+        self.edges[pos.y as usize][pos.x as usize][dir.val() as usize] += 1;
     }
 
     fn remove_edge(&mut self, pos: &Pos, dir: &Dir) {
-        self.edges[pos.y as usize][pos.x as usize][dir.val() as usize] = false;
+        debug_assert!(self.edges[pos.y as usize][pos.x as usize][dir.val() as usize] > 0);
+        self.edges[pos.y as usize][pos.x as usize][dir.val() as usize] -= 1;
     }
 
     pub fn has_point(&self, pos: &Pos) -> bool {
         self.points[pos.y as usize][pos.x as usize].is_some()
     }
 
-    pub fn has_edge(&self, pos: &Pos, dir: &Dir) -> bool {
+    pub fn edge_count(&self, pos: &Pos, dir: &Dir) -> usize {
         self.edges[pos.y as usize][pos.x as usize][dir.val() as usize].clone()
     }
 
