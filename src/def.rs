@@ -303,12 +303,11 @@ pub struct Point {
     // 追加された点かどうか
     pub is_added: bool,
     // 各方向にある最も近い点
-    // 方向を0~7の値に決める
-    pub nearest_points: Vec<Option<Pos>>,
+    pub nearest_points: [Option<Pos>; DIR_MAX],
     // その点を使って作った点
     pub created_points: Vec<Pos>,
     // 各方向が長方形の辺に使われているか
-    pub used_dir: Vec<bool>,
+    pub used_dir: [bool; DIR_MAX],
     // 追加されたときに使われた点の情報
     pub added_info: Option<Square>,
 }
@@ -318,9 +317,9 @@ impl Point {
         Point {
             pos: pos.clone(),
             is_added,
-            nearest_points: vec![None; DIR_MAX],
+            nearest_points: [None; DIR_MAX],
             created_points: vec![],
-            used_dir: vec![false; DIR_MAX],
+            used_dir: [false; DIR_MAX],
             added_info: None,
         }
     }
