@@ -104,7 +104,7 @@ impl Neighborhood {
     fn attempt_add_dir(
         state: &mut State,
         pos: &Pos,
-        nearest_points: &Vec<Option<Pos>>,
+        nearest_points: &[Option<Pos>; DIR_MAX],
         dir: &Dir,
     ) -> Vec<Command> {
         let dir_next = dir.next();
