@@ -142,7 +142,7 @@ impl Neighborhood {
     }
 
     fn perform_delete(state: &mut State) -> Vec<Command> {
-        if state.sqaure_count <= 10 {
+        if state.square_count <= 10 {
             return vec![];
         }
         let square = state.sample_square();
@@ -155,7 +155,7 @@ impl Neighborhood {
 
     fn perform_change_square(state: &mut State) -> Vec<Command> {
         // 四角を作っている点を探す
-        if state.sqaure_count <= 10 {
+        if state.square_count <= 10 {
             return vec![];
         }
         let square = state.sample_square();
@@ -189,7 +189,7 @@ impl Neighborhood {
     }
 
     fn perform_split_square(state: &mut State) -> Vec<Command> {
-        if state.sqaure_count <= 10 {
+        if state.square_count <= 10 {
             return vec![];
         }
         let selected_square = state.sample_square();

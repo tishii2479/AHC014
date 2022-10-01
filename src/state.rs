@@ -5,7 +5,7 @@ use crate::*;
 pub struct State {
     pub grid: Grid,
     pub score: Score,
-    pub sqaure_count: i32,
+    pub square_count: i32,
 }
 
 impl State {
@@ -13,7 +13,7 @@ impl State {
         let mut state = State {
             grid: Grid::new(n),
             score: Score::new(),
-            sqaure_count: 0,
+            square_count: 0,
         };
         for pos in p.iter() {
             state.grid.add_point(pos, None);
@@ -55,7 +55,7 @@ impl State {
 
         self.grid.create_square(&square, is_reverse);
 
-        self.sqaure_count += 1;
+        self.square_count += 1;
 
         // スコアの更新
         self.score.base += self.weight(&square.new_pos);
@@ -89,7 +89,7 @@ impl State {
             self.perform_delete(&created_square, performed_commands);
         }
 
-        self.sqaure_count -= 1;
+        self.square_count -= 1;
         self.grid.delete_square(&square);
         self.score.base -= self.weight(&square.new_pos);
         performed_commands.push(Command::Delete { square: *square });
