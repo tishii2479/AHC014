@@ -22,13 +22,14 @@ use state::*;
 use util::*;
 
 #[allow(unused_variables)]
-fn calc_start_temp(n: usize, m: usize) -> f64 {
-    500. * (n as f64 / 30.).powf(2.)
+fn calc_start_temp(n: usize, m: usize, a: f64, c: f64) -> f64 {
+    let buf = f64::max(0., 1.1 - (m as f64 / n as f64)) * c;
+    (a - buf) * (n as f64 / 30.).powf(2.)
 }
 
 #[allow(unused_variables)]
-fn calc_end_temp(n: usize, m: usize) -> f64 {
-    25. * (n as f64 / 30.).powf(2.)
+fn calc_end_temp(n: usize, m: usize, b: f64) -> f64 {
+    b * (n as f64 / 30.).powf(2.)
 }
 
 struct NeighborhoodSelector {
@@ -197,7 +198,7 @@ impl ISolver for Solver {
             }
             loop_count += 1;
         }
-        eprintln!("loop_count: {}", loop_count);
+        // eprintln!("loop_count: {}", loop_count);
 
         self.state = best_state.clone();
     }
@@ -261,6 +262,7 @@ impl Solver {
 }
 
 fn main() {
+    use std::env;
     time::start_clock();
 
     input! {
@@ -269,8 +271,9 @@ fn main() {
         p: [Pos; m]
     }
 
-    let start_temp: f64 = calc_start_temp(n, m);
-    let end_temp: f64 = calc_end_temp(n, m);
+    let args: Vec<String> = env::args().collect();
+    let start_temp: f64 = calc_start_temp(n, m, args[1].parse().unwrap(), args[3].parse().unwrap());
+    let end_temp: f64 = calc_end_temp(n, m, args[2].parse().unwrap());
 
     let state = State::new(n, p);
     let mut solver = Solver::new(
@@ -280,9 +283,14 @@ fn main() {
     );
 
     solver.solve(TIME_LIMIT);
-    solver.output();
+    // solver.output();
+
+    println!(
+        "{}",
+        calc_real_score(n, m, solver.state.get_score(1.) as i64)
+    );
 
     // TODO: 最終提出では消す
-    solver.output_statistics(n, m);
-    eprintln!("run_time: {}", time::elapsed_seconds());
+    // solver.output_statistics(n, m);
+    // eprintln!("run_time: {}", time::elapsed_seconds());
 }

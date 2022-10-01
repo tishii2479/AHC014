@@ -3,3 +3,4 @@
 tools/
 vis.html
 out/
+__pycache__/

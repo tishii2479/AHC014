@@ -1,0 +1,1 @@
+best_score:1229785.95, a:471.45839694200276, b:36.431488928245415, c:1004.5018205014252, using_testcase_num:200, total_testcase_num:200, n_trials:200
