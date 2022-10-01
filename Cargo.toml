@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 
 proconio = { version = "=0.3.6", features = ["derive"] }
+rand = { version = "=0.7.3", features = ["small_rng"] }

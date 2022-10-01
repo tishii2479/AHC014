@@ -1,3 +1,5 @@
+use rand::rngs::ThreadRng;
+
 use crate::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -10,17 +12,17 @@ pub enum Neighborhood {
 }
 
 impl Neighborhood {
-    pub fn perform(&self, state: &mut State) -> Vec<Command> {
+    pub fn perform(&self, state: &mut State, _rng: &mut ThreadRng) -> Vec<Command> {
         match self {
-            Neighborhood::Add => Neighborhood::perform_add(state),
-            Neighborhood::Delete => Neighborhood::perform_delete(state),
-            Neighborhood::ChangeSquare => Neighborhood::perform_change_square(state),
-            Neighborhood::SplitSquare => Neighborhood::perform_split_square(state),
-            Neighborhood::MultipleAdd => Neighborhood::perform_multiple_add(state),
+            Neighborhood::Add => Neighborhood::perform_add(state, _rng),
+            Neighborhood::Delete => Neighborhood::perform_delete(state, _rng),
+            Neighborhood::ChangeSquare => Neighborhood::perform_change_square(state, _rng),
+            Neighborhood::SplitSquare => Neighborhood::perform_split_square(state, _rng),
+            Neighborhood::MultipleAdd => Neighborhood::perform_multiple_add(state, _rng),
         }
     }
 
-    fn perform_multiple_add(state: &mut State) -> Vec<Command> {
+    fn perform_multiple_add(state: &mut State, _rng: &mut ThreadRng) -> Vec<Command> {
         let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
         let mut performed_commands = vec![];
         let mut recursion_count = 0;
@@ -31,6 +33,7 @@ impl Neighborhood {
             &MULTIPLE_ADD_RECURSION_LIMIT,
             &mut performed_commands,
             state.get_score(1.),
+            _rng,
         );
         performed_commands
     }
@@ -42,6 +45,7 @@ impl Neighborhood {
         recursion_limit: &usize,
         performed_commands: &mut Vec<Command>,
         start_score: f32,
+        rng: &mut ThreadRng,
     ) {
         if state.get_score(1.) > start_score {
             return;
@@ -50,13 +54,12 @@ impl Neighborhood {
             return;
         }
         *recursion_count += 1;
-        for _ in 0..DIR_MAX {
-            let i = rnd::gen_range(0, DIR_MAX);
+        for i in util::rnd::shuffled_range(DIR_MAX, rng) {
             let dir = Dir::from_i32(i as i32);
             if let Some(nearest_pos) =
                 state.grid.point(&pos).as_ref().unwrap().nearest_points[dir.val() as usize]
             {
-                let mut add = Neighborhood::attempt_add(state, &nearest_pos, None);
+                let mut add = Neighborhood::attempt_add(state, &nearest_pos, None, rng);
                 performed_commands.append(&mut add);
                 Neighborhood::attempt_multiple_add(
                     state,
@@ -65,17 +68,23 @@ impl Neighborhood {
                     recursion_limit,
                     performed_commands,
                     start_score,
+                    rng,
                 );
             }
         }
     }
 
-    fn perform_add(state: &mut State) -> Vec<Command> {
+    fn perform_add(state: &mut State, _rng: &mut ThreadRng) -> Vec<Command> {
         let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
-        Neighborhood::attempt_add(state, &selected_p, None)
+        Neighborhood::attempt_add(state, &selected_p, None, _rng)
     }
 
-    fn attempt_add(state: &mut State, pos: &Pos, ignore_dir: Option<&Dir>) -> Vec<Command> {
+    fn attempt_add(
+        state: &mut State,
+        pos: &Pos,
+        ignore_dir: Option<&Dir>,
+        rng: &mut ThreadRng,
+    ) -> Vec<Command> {
         debug_assert!(state.grid.has_point(&pos));
         let nearest_points = state
             .grid
@@ -84,8 +93,7 @@ impl Neighborhood {
             .unwrap()
             .nearest_points
             .clone();
-        for _ in 0..DIR_MAX {
-            let i = rnd::gen_range(0, DIR_MAX);
+        for i in util::rnd::shuffled_range(DIR_MAX, rng) {
             let diagonal_dir = Dir::from_i32(i as i32);
             if let Some(ignore_dir) = ignore_dir {
                 if ignore_dir == &diagonal_dir {
@@ -139,7 +147,7 @@ impl Neighborhood {
         vec![]
     }
 
-    fn perform_delete(state: &mut State) -> Vec<Command> {
+    fn perform_delete(state: &mut State, _rng: &mut ThreadRng) -> Vec<Command> {
         if state.squares.len() == 0 {
             return vec![];
         }
@@ -151,16 +159,20 @@ impl Neighborhood {
         state.perform_command(&Command::Delete { square: *square })
     }
 
-    fn perform_change_square(state: &mut State) -> Vec<Command> {
+    fn perform_change_square(state: &mut State, _rng: &mut ThreadRng) -> Vec<Command> {
         // 四角を作っている点を探す
         if state.squares.len() == 0 {
             return vec![];
         }
         let square = state.squares[rnd::gen_range(0, state.squares.len()) as usize];
-        Neighborhood::attempt_change_square(state, &square)
+        Neighborhood::attempt_change_square(state, &square, _rng)
     }
 
-    fn attempt_change_square(state: &mut State, square: &Square) -> Vec<Command> {
+    fn attempt_change_square(
+        state: &mut State,
+        square: &Square,
+        rng: &mut ThreadRng,
+    ) -> Vec<Command> {
         let start_score = state.get_score(1.);
         let mut performed_commands = state.perform_command(&Command::Delete { square: *square });
 
@@ -182,19 +194,24 @@ impl Neighborhood {
             &MULTIPLE_ADD_RECURSION_LIMIT,
             &mut performed_commands,
             start_score,
+            rng,
         );
         return performed_commands;
     }
 
-    fn perform_split_square(state: &mut State) -> Vec<Command> {
+    fn perform_split_square(state: &mut State, _rng: &mut ThreadRng) -> Vec<Command> {
         if state.squares.len() == 0 {
             return vec![];
         }
         let selected_square = state.squares[rnd::gen_range(0, state.squares.len()) as usize];
-        Neighborhood::attempt_split_square(state, &selected_square)
+        Neighborhood::attempt_split_square(state, &selected_square, _rng)
     }
 
-    fn attempt_split_square(state: &mut State, square: &Square) -> Vec<Command> {
+    fn attempt_split_square(
+        state: &mut State,
+        square: &Square,
+        rng: &mut ThreadRng,
+    ) -> Vec<Command> {
         let nearest_points = state
             .grid
             .point(&square.diagonal)
@@ -225,6 +242,7 @@ impl Neighborhood {
                 &MULTIPLE_ADD_RECURSION_LIMIT,
                 &mut performed_commands,
                 start_score,
+                rng,
             );
             return performed_commands;
         }
@@ -274,7 +292,7 @@ fn test_split_square() {
         .grid
         .add_point(&add_pos, Point::new(&add_pos, true), None);
 
-    Neighborhood::attempt_split_square(&mut state, &square);
+    Neighborhood::attempt_split_square(&mut state, &square, &mut rand::thread_rng());
 
     let mut square = Square::new(new_pos2.clone(), diagonal.clone(), connect2.clone());
     square.id = state.squares[0].id;
@@ -306,7 +324,8 @@ fn test_change_square() {
         square: square.clone(),
     });
     let copied_state = state.clone();
-    let performed_commands = Neighborhood::attempt_change_square(&mut state, &square);
+    let performed_commands =
+        Neighborhood::attempt_change_square(&mut state, &square, &mut rand::thread_rng());
 
     // multiple_addが不定なので消す
     // Squareのidは異なってしまう

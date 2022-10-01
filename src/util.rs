@@ -1,8 +1,17 @@
 use crate::Pos;
 
 pub mod rnd {
+    use rand::rngs::ThreadRng;
+    use rand::seq::SliceRandom;
+
     #[allow(unused)]
     static mut S: usize = 88172645463325252;
+
+    pub fn shuffled_range(size: usize, rng: &mut ThreadRng) -> Vec<usize> {
+        let mut vec: Vec<usize> = (0..size).collect();
+        vec.shuffle(rng);
+        vec
+    }
 
     #[allow(unused)]
     #[inline]

@@ -157,6 +157,7 @@ impl ISolver for Solver {
         let mut loop_count = 0;
         let mut best_state = self.state.clone();
         let mut progress = time::elapsed_seconds() as f32 / time_limit;
+        let mut rng = rand::thread_rng();
         while progress < 1. {
             let is_interval = (loop_count % LOOP_INTERVAL) == 0;
             if is_interval {
@@ -168,7 +169,7 @@ impl ISolver for Solver {
 
             let current_score = self.state.get_score(progress);
 
-            let performed_commands = neighborhood.perform(&mut self.state);
+            let performed_commands = neighborhood.perform(&mut self.state, &mut rng);
 
             let new_score = self.state.get_score(progress);
 
