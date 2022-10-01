@@ -70,7 +70,7 @@ impl Grid {
         // 点を追加する
         self.add_point(
             &square.new_pos,
-            Point::new(&square.new_pos, true),
+            Point::new(&square.new_pos),
             Some(square.clone()),
         );
 

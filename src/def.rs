@@ -294,8 +294,6 @@ impl ops::Sub<&Pos> for &Pos {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Point {
     pub pos: Pos,
-    // 追加された点かどうか
-    pub is_added: bool,
     // 各方向にある最も近い点
     pub nearest_points: [Option<Pos>; DIR_MAX],
     // その点を使って作った点
@@ -307,10 +305,9 @@ pub struct Point {
 }
 
 impl Point {
-    pub fn new(pos: &Pos, is_added: bool) -> Point {
+    pub fn new(pos: &Pos) -> Point {
         Point {
             pos: pos.clone(),
-            is_added,
             nearest_points: [None; DIR_MAX],
             created_points: vec![],
             used_dir: [false; DIR_MAX],

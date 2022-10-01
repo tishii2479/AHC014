@@ -16,7 +16,7 @@ impl State {
             score: Score::new(),
         };
         for pos in p.iter() {
-            state.grid.add_point(pos, Point::new(&pos, false), None);
+            state.grid.add_point(pos, Point::new(&pos), None);
             state.score.base += state.weight(&pos);
         }
         state
@@ -170,12 +170,8 @@ fn test_calc_point_closeness() {
     let new_pos2 = Pos { x: 1, y: 1 };
 
     let copied_state = state.clone();
-    state
-        .grid
-        .add_point(&new_pos, Point::new(&new_pos, true), None);
-    state
-        .grid
-        .add_point(&new_pos2, Point::new(&new_pos2, true), None);
+    state.grid.add_point(&new_pos, Point::new(&new_pos), None);
+    state.grid.add_point(&new_pos2, Point::new(&new_pos2), None);
     state.grid.remove_point(&new_pos2);
     state.grid.remove_point(&new_pos);
 

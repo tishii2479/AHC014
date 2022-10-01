@@ -281,9 +281,7 @@ fn test_split_square() {
         let square = Square::new(new_pos.clone(), diagonal.clone(), connect.clone());
         let mut state = State::new(n, p);
         state.perform_add(&square, false);
-        state
-            .grid
-            .add_point(&add_pos, Point::new(&add_pos, true), None);
+        state.grid.add_point(&add_pos, Point::new(&add_pos), None);
 
         Neighborhood::attempt_split_square(&mut state, &square);
 
