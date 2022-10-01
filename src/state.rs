@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::grid::*;
 use crate::*;
 
@@ -5,6 +7,7 @@ use crate::*;
 pub struct State {
     pub grid: Grid,
     pub squares: Vec<Square>,
+    pub deleted_squares: HashSet<i32>,
     pub score: Score,
 }
 
@@ -13,6 +16,7 @@ impl State {
         let mut state = State {
             grid: Grid::new(n),
             squares: vec![],
+            deleted_squares: HashSet::new(),
             score: Score::new(),
         };
         for pos in p.iter() {
@@ -98,8 +102,7 @@ impl State {
         }
 
         self.grid.delete_square(&square);
-
-        // FIXME: O(n)
+        self.deleted_squares.insert(square.id);
         self.squares
             .remove(self.squares.iter().position(|x| *x == *square).unwrap());
         self.score.base -= self.weight(&square.new_pos);
@@ -120,6 +123,17 @@ impl State {
 
     pub fn sample_square(&self) -> Square {
         self.squares[rnd::gen_range(0, self.squares.len()) as usize]
+        // loop {
+        //     let pos = Pos {
+        //         x: rnd::gen_range(0, self.grid.size) as i32,
+        //         y: rnd::gen_range(0, self.grid.size) as i32,
+        //     };
+        //     if let Some(point) = self.grid.point(&pos).as_ref() {
+        //         if let Some(added_info) = point.added_info {
+        //             return added_info;
+        //         }
+        //     }
+        // }
     }
 
     pub fn calc_deletion_size(
