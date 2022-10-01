@@ -4,7 +4,6 @@ use crate::*;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct State {
     pub grid: Grid,
-    pub points: Vec<Pos>,
     pub squares: Vec<Square>,
     pub score: Score,
 }
@@ -13,13 +12,11 @@ impl State {
     pub fn new(n: usize, p: Vec<Pos>) -> State {
         let mut state = State {
             grid: Grid::new(n),
-            points: p.clone(),
             squares: vec![],
             score: Score::new(),
         };
         for pos in p.iter() {
             state.grid.add_point(pos, Point::new(&pos, false), None);
-            state.points.push(pos.clone());
             state.score.base += state.weight(&pos);
         }
         state
@@ -59,7 +56,6 @@ impl State {
         self.grid.create_square(&square, is_reverse);
 
         self.squares.push(square.clone());
-        self.points.push(square.new_pos.clone());
 
         // スコアの更新
         self.score.base += self.weight(&square.new_pos);
@@ -106,19 +102,20 @@ impl State {
         // FIXME: O(n)
         self.squares
             .remove(self.squares.iter().position(|x| *x == *square).unwrap());
-        // FIXME: O(n)
-        self.points.remove(
-            self.points
-                .iter()
-                .position(|x| *x == square.new_pos)
-                .unwrap(),
-        );
         self.score.base -= self.weight(&square.new_pos);
         performed_commands.push(Command::Delete { square: *square });
     }
 
     pub fn sample_point_pos(&self) -> Pos {
-        self.points[rnd::gen_range(0, self.points.len()) as usize]
+        loop {
+            let pos = Pos {
+                x: rnd::gen_range(0, self.grid.size) as i32,
+                y: rnd::gen_range(0, self.grid.size) as i32,
+            };
+            if self.grid.has_point(&pos) {
+                return pos;
+            }
+        }
     }
 
     pub fn sample_square(&self) -> Square {
