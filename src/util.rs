@@ -28,7 +28,7 @@ pub mod rnd {
 }
 
 pub mod time {
-    static mut START: f32 = -1.;
+    static mut START: f64 = -1.;
     #[allow(unused)]
     pub fn start_clock() {
         let _ = elapsed_seconds();
@@ -36,11 +36,11 @@ pub mod time {
 
     #[allow(unused)]
     #[inline]
-    pub fn elapsed_seconds() -> f32 {
+    pub fn elapsed_seconds() -> f64 {
         let t = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
-            .as_secs_f32();
+            .as_secs_f64();
         unsafe {
             if START < 0. {
                 START = t;

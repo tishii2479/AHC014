@@ -158,11 +158,11 @@ impl ISolver for Solver {
     fn solve(&mut self, time_limit: f32) {
         let mut loop_count = 0;
         let mut best_state = self.state.clone();
-        let mut progress = time::elapsed_seconds() / time_limit;
+        let mut progress = time::elapsed_seconds() as f32 / time_limit;
         while progress < 1. {
             let is_interval = (loop_count % LOOP_INTERVAL) == 0;
             if is_interval {
-                progress = time::elapsed_seconds() / time_limit;
+                progress = time::elapsed_seconds() as f32 / time_limit;
                 self.optimizer.update_temp(progress);
             }
 
