@@ -23,8 +23,7 @@ use util::*;
 
 #[allow(unused_variables)]
 fn calc_start_temp(n: usize, m: usize) -> f32 {
-    let buf = f32::max(0., 1.1 - (m as f32 / n as f32)) * 2000.;
-    (500. - buf) * (n as f32 / 30.).powf(2.)
+    500. * (n as f32 / 30.).powf(2.)
 }
 
 #[allow(unused_variables)]
@@ -192,7 +191,7 @@ impl ISolver for Solver {
             }
             loop_count += 1;
         }
-
+        eprintln!("loop_count: {}", loop_count);
         self.state = best_state.clone();
     }
 }
@@ -276,4 +275,5 @@ fn main() {
 
     solver.solve(TIME_LIMIT);
     solver.output();
+    solver.output_statistics(n, m);
 }
