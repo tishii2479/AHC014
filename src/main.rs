@@ -113,7 +113,6 @@ impl IState for State {
     #[allow(unused_variables)]
     fn get_score(&self, progress: f32) -> f32 {
         let base_score = self.score.base as f32;
-        let additional_score = self.score.additional as f32;
         base_score
     }
 
@@ -188,13 +187,8 @@ impl ISolver for Solver {
             self.neighborhood_selector
                 .step(&neighborhood, adopt_new_state);
 
-            if WRITE_SCORE_LOG && is_interval {
-                self.score_history.push(self.state.score.base as f32);
-            }
-            if is_interval {
-                if self.state.get_score(1.) > best_state.get_score(1.) {
-                    best_state = self.state.clone();
-                }
+            if is_interval && self.state.get_score(1.) > best_state.get_score(1.) {
+                best_state = self.state.clone();
             }
             loop_count += 1;
         }

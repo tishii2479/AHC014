@@ -66,15 +66,9 @@ impl Grid {
         self.remove_edge(b, &dir.rev());
     }
 
-    #[allow(dead_code)]
-    pub fn calc_square_penalty(&self, _square: &Square) -> Score {
-        let score = Score::new();
-        score
-    }
-
-    pub fn create_square(&mut self, square: &Square, is_reverse: bool) -> Score {
+    pub fn create_square(&mut self, square: &Square, is_reverse: bool) {
         // 点を追加する
-        let mut score = self.add_point(
+        self.add_point(
             &square.new_pos,
             Point::new(&square.new_pos, true),
             Some(square.clone()),
@@ -90,15 +84,11 @@ impl Grid {
         self.register_created_points(&square.connect[0], &square.new_pos);
         self.register_created_points(&square.connect[1], &square.new_pos);
         self.register_created_points(&square.diagonal, &square.new_pos);
-
-        score += &self.calc_square_penalty(square);
-
-        score
     }
 
-    pub fn delete_square(&mut self, square: &Square) -> Score {
+    pub fn delete_square(&mut self, square: &Square) {
         // 点を削除する
-        let mut score = self.remove_point(&square.new_pos);
+        self.remove_point(&square.new_pos);
 
         // 辺を削除する
         self.disconnect(&square.connect[0], &square.new_pos);
@@ -110,17 +100,10 @@ impl Grid {
         self.unregister_created_points(&square.connect[0], &square.new_pos);
         self.unregister_created_points(&square.connect[1], &square.new_pos);
         self.unregister_created_points(&square.diagonal, &square.new_pos);
-
-        score -= &self.calc_square_penalty(square);
-
-        score
     }
 
-    pub fn remove_point(&mut self, pos: &Pos) -> Score {
+    pub fn remove_point(&mut self, pos: &Pos) {
         debug_assert!(self.has_point(&pos));
-
-        let score = Score::new();
-
         let nearest_points = self.point(&pos).as_ref().unwrap().nearest_points.clone();
         for i in 0..DIR_MAX {
             let dir = Dir::from_i32(i as i32);
@@ -137,13 +120,10 @@ impl Grid {
             }
         }
         self.points[pos.y as usize][pos.x as usize] = None;
-        score
     }
 
-    pub fn add_point(&mut self, pos: &Pos, mut point: Point, square: Option<Square>) -> Score {
+    pub fn add_point(&mut self, pos: &Pos, mut point: Point, square: Option<Square>) {
         debug_assert!(!self.has_point(&pos));
-
-        let score = Score::new();
 
         for i in 0..DIR_MAX {
             let dir = Dir::from_i32(i as i32);
@@ -156,8 +136,6 @@ impl Grid {
         }
         point.added_info = square;
         self.points[pos.y as usize][pos.x as usize] = Some(point);
-
-        score
     }
 
     fn add_edge(&mut self, pos: &Pos, dir: &Dir) {

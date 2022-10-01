@@ -6,29 +6,23 @@ pub const DIR_MAX: usize = 8;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Score {
     pub base: i32,
-    pub additional: i32,
 }
 
 impl Score {
     pub fn new() -> Score {
-        Score {
-            base: 0,
-            additional: 0,
-        }
+        Score { base: 0 }
     }
 }
 
 impl ops::AddAssign<&Score> for Score {
     fn add_assign(&mut self, rhs: &Score) {
         self.base += rhs.base;
-        self.additional += rhs.additional;
     }
 }
 
 impl ops::SubAssign<&Score> for Score {
     fn sub_assign(&mut self, rhs: &Score) {
         self.base -= rhs.base;
-        self.additional -= rhs.additional;
     }
 }
 
