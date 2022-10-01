@@ -50,8 +50,13 @@ impl Neighborhood {
             return;
         }
         *recursion_count += 1;
+        let mut used_bits: usize = 0;
         for _ in 0..DIR_MAX {
             let i = rnd::gen_range(0, DIR_MAX);
+            if used_bits & (1 << i) > 0 {
+                continue;
+            }
+            used_bits |= 1 << i;
             let dir = Dir::from_i32(i as i32);
             if let Some(nearest_pos) =
                 state.grid.point(&pos).as_ref().unwrap().nearest_points[dir.val() as usize]
@@ -84,8 +89,13 @@ impl Neighborhood {
             .unwrap()
             .nearest_points
             .clone();
+        let mut used_bits: usize = 0;
         for _ in 0..DIR_MAX {
             let i = rnd::gen_range(0, DIR_MAX);
+            if used_bits & (1 << i) > 0 {
+                continue;
+            }
+            used_bits |= 1 << i;
             let diagonal_dir = Dir::from_i32(i as i32);
             if let Some(ignore_dir) = ignore_dir {
                 if ignore_dir == &diagonal_dir {
