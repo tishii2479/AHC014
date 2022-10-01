@@ -23,7 +23,8 @@ use util::*;
 
 #[allow(unused_variables)]
 fn calc_start_temp(n: usize, m: usize) -> f64 {
-    500. * (n as f64 / 30.).powf(2.)
+    let buf = f64::max(0., 1.1 - (m as f64 / n as f64)) * 2000.;
+    (500. - buf) * (n as f64 / 30.).powf(2.)
 }
 
 #[allow(unused_variables)]

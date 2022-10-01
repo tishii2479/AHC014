@@ -43,7 +43,9 @@ def main():
 
     subprocess.run("cargo build --release", shell=True)
     with multiprocessing.Pool(max(1, multiprocessing.cpu_count() - 2)) as pool:
-        for seed, score, n, m in pool.imap_unordered(execute_case, range(CASE)):
+        for seed, score, n, m in pool.imap_unordered(
+            execute_case, range(CASE, CASE + 100)
+        ):
             count += 1
             try:
                 scores.append((int(score.split()[2]), f"{seed:04}"))
@@ -58,7 +60,7 @@ def main():
                 exit()
 
             print(
-                f"case {count:3}: (score: {scores[-1][0]:7}, current ave: {total / count:10.2f})",
+                f"case {seed:3}: (score: {scores[-1][0]:7}, current ave: {total / count:10.2f})",
                 flush=True,
             )
 
