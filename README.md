@@ -1,5 +1,15 @@
 # AHC014
 
+![vis](https://user-images.githubusercontent.com/64118114/193408596-0f09cb0e-b1cd-4257-8ab9-ad33310ee16e.gif)
+
+## 結果
+
+### 順位
+
+22位 / 710人
+
+### スコア分布
+
 ```
 ave: 1230842.355
  500000 ~  549999: 
