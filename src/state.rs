@@ -262,45 +262,30 @@ fn test_perform_add() {
     assert!(state.grid.has_edge(&Pos { x: 1, y: 2 }, &Dir::Left));
     assert!(state.grid.has_edge(&Pos { x: 1, y: 2 }, &Dir::Right));
 
-    // match state.grid.point(&connect[0]) {
-    //     Some(point_other) => {
-    //         assert_eq!(
-    //             point_other.nearest_points[Dir::Up.val() as usize],
-    //             Some(Pos { x: 2, y: 2 })
-    //         );
+    assert_eq!(
+        state.grid.point(&connect[0]).nearest_points[Dir::Up.val() as usize],
+        Some(Pos { x: 2, y: 2 })
+    );
 
-    //         assert!(point_other.created_points[0] == Pos { x: 2, y: 2 });
-    //     }
-    //     None => assert!(false),
-    // }
+    assert!(state.grid.point(&connect[0]).created_points[0] == Pos { x: 2, y: 2 });
 
-    // match state.grid.point(&new_pos) {
-    //     Some(point_new_pos) => {
-    //         assert_eq!(
-    //             point_new_pos.nearest_points[Dir::Left.val() as usize],
-    //             Some(Pos { x: 0, y: 2 })
-    //         );
-    //         assert_eq!(
-    //             point_new_pos.nearest_points[Dir::Up.val() as usize],
-    //             Some(Pos { x: 2, y: 4 })
-    //         );
-    //         assert_eq!(
-    //             point_new_pos.nearest_points[Dir::Down.val() as usize],
-    //             Some(Pos { x: 2, y: 0 })
-    //         );
-    //     }
-    //     None => assert!(false),
-    // }
+    assert_eq!(
+        state.grid.point(&new_pos).nearest_points[Dir::Left.val() as usize],
+        Some(Pos { x: 0, y: 2 })
+    );
+    assert_eq!(
+        state.grid.point(&new_pos).nearest_points[Dir::Up.val() as usize],
+        Some(Pos { x: 2, y: 4 })
+    );
+    assert_eq!(
+        state.grid.point(&new_pos).nearest_points[Dir::Down.val() as usize],
+        Some(Pos { x: 2, y: 0 })
+    );
 
-    // match state.grid.point(&other) {
-    //     Some(point_other) => {
-    //         assert_eq!(
-    //             point_other.nearest_points[Dir::Down.val() as usize],
-    //             Some(Pos { x: 2, y: 2 })
-    //         );
-    //     }
-    //     None => assert!(false),
-    // }
+    assert_eq!(
+        state.grid.point(&other).nearest_points[Dir::Down.val() as usize],
+        Some(Pos { x: 2, y: 2 })
+    );
 }
 
 #[test]
