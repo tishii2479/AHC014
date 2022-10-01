@@ -4,16 +4,16 @@ use crate::*;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct State {
     pub grid: Grid,
-    pub squares: Vec<Square>,
     pub score: Score,
+    pub sqaure_count: i32,
 }
 
 impl State {
     pub fn new(n: usize, p: Vec<Pos>) -> State {
         let mut state = State {
             grid: Grid::new(n),
-            squares: vec![],
             score: Score::new(),
+            sqaure_count: 0,
         };
         for pos in p.iter() {
             state.grid.add_point(pos, None);
@@ -55,7 +55,7 @@ impl State {
 
         self.grid.create_square(&square, is_reverse);
 
-        self.squares.push(square.clone());
+        self.sqaure_count += 1;
 
         // スコアの更新
         self.score.base += self.weight(&square.new_pos);
@@ -89,9 +89,8 @@ impl State {
             self.perform_delete(&created_square, performed_commands);
         }
 
+        self.sqaure_count -= 1;
         self.grid.delete_square(&square);
-        self.squares
-            .remove(self.squares.iter().position(|x| *x == *square).unwrap());
         self.score.base -= self.weight(&square.new_pos);
         performed_commands.push(Command::Delete { square: *square });
     }
@@ -108,19 +107,16 @@ impl State {
         }
     }
 
-    pub fn sample_square(&self) -> Square {
-        self.squares[rnd::gen_range(0, self.squares.len()) as usize]
-        // loop {
-        //     let pos = Pos {
-        //         x: rnd::gen_range(0, self.grid.size) as i32,
-        //         y: rnd::gen_range(0, self.grid.size) as i32,
-        //     };
-        //     if let Some(point) = self.grid.point(&pos).as_ref() {
-        //         if let Some(added_info) = point.added_info {
-        //             return added_info;
-        //         }
-        //     }
-        // }
+    pub fn sample_square(&mut self) -> Square {
+        loop {
+            let pos = Pos {
+                x: rnd::gen_range(0, self.grid.size) as i32,
+                y: rnd::gen_range(0, self.grid.size) as i32,
+            };
+            if let Some(added_info) = self.grid.point(&pos).added_info {
+                return added_info;
+            }
+        }
     }
 
     pub fn calc_deletion_size(

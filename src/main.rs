@@ -211,14 +211,30 @@ impl Solver {
     }
 
     fn output(&mut self) {
-        println!("{}", self.state.squares.len());
-        self.state.squares.sort_by(|a, b| a.id.cmp(&b.id));
+        let mut squares: Vec<Square> = vec![];
+        for i in 0..self.state.grid.size {
+            for j in 0..self.state.grid.size {
+                let pos = Pos {
+                    x: j as i32,
+                    y: i as i32,
+                };
+                let point = self.state.grid.point(&pos);
+                if point.exists {
+                    if let Some(added_info) = point.added_info {
+                        squares.push(added_info);
+                    }
+                }
+            }
+        }
+        println!("{}", squares.len());
+
+        squares.sort_by(|a, b| a.id.cmp(&b.id));
         for Square {
             id: _,
             new_pos,
             diagonal,
             connect,
-        } in &self.state.squares
+        } in &squares
         {
             println!(
                 "{} {} {} {} {} {} {} {}",

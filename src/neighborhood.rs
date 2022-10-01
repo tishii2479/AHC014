@@ -142,7 +142,7 @@ impl Neighborhood {
     }
 
     fn perform_delete(state: &mut State) -> Vec<Command> {
-        if state.squares.len() == 0 {
+        if state.sqaure_count <= 10 {
             return vec![];
         }
         let square = state.sample_square();
@@ -155,7 +155,7 @@ impl Neighborhood {
 
     fn perform_change_square(state: &mut State) -> Vec<Command> {
         // 四角を作っている点を探す
-        if state.squares.len() == 0 {
+        if state.sqaure_count <= 10 {
             return vec![];
         }
         let square = state.sample_square();
@@ -189,7 +189,7 @@ impl Neighborhood {
     }
 
     fn perform_split_square(state: &mut State) -> Vec<Command> {
-        if state.squares.len() == 0 {
+        if state.sqaure_count <= 10 {
             return vec![];
         }
         let selected_square = state.sample_square();
@@ -274,9 +274,9 @@ fn test_split_square() {
         let mut square = Square::new(new_pos2.clone(), diagonal.clone(), connect2.clone());
 
         // 不定なので、四角が作られるまでやり直す
-        if state.squares.len() > 0 {
-            square.id = state.squares[0].id;
-            assert_eq!(state.squares[0], square);
+        if let Some(added_info) = state.grid.point(&new_pos2).added_info {
+            square.id = added_info.id;
+            assert_eq!(added_info, square);
             break;
         }
     }
