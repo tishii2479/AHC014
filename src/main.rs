@@ -191,7 +191,6 @@ impl ISolver for Solver {
             }
             loop_count += 1;
         }
-        eprintln!("loop_count: {}", loop_count);
         self.state = best_state.clone();
     }
 }
@@ -291,5 +290,4 @@ fn main() {
 
     solver.solve(TIME_LIMIT);
     solver.output();
-    solver.output_statistics(n, m);
 }

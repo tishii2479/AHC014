@@ -50,36 +50,6 @@ impl Square {
             ],
         }
     }
-
-    #[allow(dead_code)]
-    pub fn size(&self) -> i32 {
-        Pos::dist(&self.new_pos, &self.connect[0]) + Pos::dist(&self.new_pos, &self.connect[1])
-    }
-
-    #[allow(dead_code)]
-    pub fn all_pos(&self) -> [&Pos; 4] {
-        [
-            &self.new_pos,
-            &self.connect[0],
-            &self.diagonal,
-            &self.connect[1],
-        ]
-    }
-
-    #[allow(dead_code)]
-    pub fn get_corners(&self) -> (i32, i32, i32, i32) {
-        let mut min_x = 100;
-        let mut max_x = -1;
-        let mut min_y = 100;
-        let mut max_y = -1;
-        for pos in &self.all_pos() {
-            min_x = i32::min(min_x, pos.x);
-            max_x = i32::max(max_x, pos.x);
-            min_y = i32::min(min_y, pos.y);
-            max_y = i32::max(max_y, pos.y);
-        }
-        (min_x, max_x, min_y, max_y)
-    }
 }
 
 #[derive(Debug, Clone)]
