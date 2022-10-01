@@ -123,7 +123,7 @@ impl Grid {
 
         let nearest_points = self.point(&pos).as_ref().unwrap().nearest_points.clone();
         for i in 0..DIR_MAX {
-            let dir = Dir::from_i64(i as i64);
+            let dir = Dir::from_i32(i as i32);
             if let Some(nearest_pos) = &nearest_points[dir.val() as usize] {
                 debug_assert!(self.has_point(&nearest_pos));
 
@@ -146,7 +146,7 @@ impl Grid {
         let score = Score::new();
 
         for i in 0..DIR_MAX {
-            let dir = Dir::from_i64(i as i64);
+            let dir = Dir::from_i32(i as i32);
             if let Some(nearest_pos) = self.nearest_point_pos(&pos, &dir) {
                 let nearest_point = self.point(&nearest_pos).as_mut().unwrap();
 
@@ -211,6 +211,6 @@ impl Grid {
     }
 
     pub fn is_valid(&self, pos: &Pos) -> bool {
-        pos.x >= 0 && pos.y >= 0 && pos.x < self.size as i64 && pos.y < self.size as i64
+        pos.x >= 0 && pos.y >= 0 && pos.x < self.size as i32 && pos.y < self.size as i32
     }
 }

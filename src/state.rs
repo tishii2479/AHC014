@@ -150,9 +150,9 @@ impl State {
 }
 
 impl State {
-    pub fn weight(&self, pos: &Pos) -> i64 {
-        let c = ((self.grid.size - 1) / 2) as i64;
-        (pos.y as i64 - c) * (pos.y as i64 - c) + (pos.x as i64 - c) * (pos.x as i64 - c) + 1
+    pub fn weight(&self, pos: &Pos) -> i32 {
+        let c = ((self.grid.size - 1) / 2) as i32;
+        (pos.y as i32 - c) * (pos.y as i32 - c) + (pos.x as i32 - c) * (pos.x as i32 - c) + 1
     }
 }
 

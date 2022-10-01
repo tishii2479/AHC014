@@ -5,8 +5,8 @@ pub const DIR_MAX: usize = 8;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Score {
-    pub base: i64,
-    pub additional: i64,
+    pub base: i32,
+    pub additional: i32,
 }
 
 impl Score {
@@ -34,7 +34,7 @@ impl ops::SubAssign<&Score> for Score {
 
 #[derive(Clone, Debug, PartialEq, Eq, Copy)]
 pub struct Square {
-    pub id: i64,
+    pub id: i32,
     pub new_pos: Pos,
     pub diagonal: Pos,
     pub connect: [Pos; 2],
@@ -42,7 +42,7 @@ pub struct Square {
 
 impl Square {
     pub fn new(new_pos: Pos, diagonal: Pos, connect: [Pos; 2]) -> Square {
-        static mut SQUARE_COUNTER: i64 = 0;
+        static mut SQUARE_COUNTER: i32 = 0;
         unsafe {
             SQUARE_COUNTER += 1;
         }
@@ -58,7 +58,7 @@ impl Square {
     }
 
     #[allow(dead_code)]
-    pub fn size(&self) -> i64 {
+    pub fn size(&self) -> i32 {
         Pos::dist(&self.new_pos, &self.connect[0]) + Pos::dist(&self.new_pos, &self.connect[1])
     }
 
@@ -73,16 +73,16 @@ impl Square {
     }
 
     #[allow(dead_code)]
-    pub fn get_corners(&self) -> (i64, i64, i64, i64) {
+    pub fn get_corners(&self) -> (i32, i32, i32, i32) {
         let mut min_x = 100;
         let mut max_x = -1;
         let mut min_y = 100;
         let mut max_y = -1;
         for pos in &self.all_pos() {
-            min_x = i64::min(min_x, pos.x);
-            max_x = i64::max(max_x, pos.x);
-            min_y = i64::min(min_y, pos.y);
-            max_y = i64::max(max_y, pos.y);
+            min_x = i32::min(min_x, pos.x);
+            max_x = i32::max(max_x, pos.x);
+            min_y = i32::min(min_y, pos.y);
+            max_y = i32::max(max_y, pos.y);
         }
         (min_x, max_x, min_y, max_y)
     }
@@ -107,7 +107,7 @@ pub enum Dir {
 }
 
 impl Dir {
-    pub fn from_i64(v: i64) -> Dir {
+    pub fn from_i32(v: i32) -> Dir {
         match v {
             0 => Dir::Up,
             1 => Dir::UpRight,
@@ -122,12 +122,12 @@ impl Dir {
     }
 
     pub fn rev(self) -> Dir {
-        let a = (self as i64 + 4) % 8;
-        Dir::from_i64(a)
+        let a = (self as i32 + 4) % 8;
+        Dir::from_i32(a)
     }
 
-    pub fn val(self) -> i64 {
-        self as i64
+    pub fn val(self) -> i32 {
+        self as i32
     }
 
     pub fn to_pos(self) -> Pos {
@@ -151,19 +151,19 @@ impl Dir {
     }
 
     pub fn next(self) -> Dir {
-        Dir::from_i64((self.val() + 1) % DIR_MAX as i64)
+        Dir::from_i32((self.val() + 1) % DIR_MAX as i32)
     }
 
     pub fn prev(self) -> Dir {
-        Dir::from_i64((self.val() + (DIR_MAX - 1) as i64) % DIR_MAX as i64)
+        Dir::from_i32((self.val() + (DIR_MAX - 1) as i32) % DIR_MAX as i32)
     }
 }
 
 #[derive_readable]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Pos {
-    pub x: i64,
-    pub y: i64,
+    pub x: i32,
+    pub y: i32,
 }
 
 impl Pos {
@@ -174,7 +174,7 @@ impl Pos {
         if a.y == b.y || a.x == b.x {
             return true;
         }
-        if i64::abs(a.x - b.x) == i64::abs(a.y - b.y) {
+        if i32::abs(a.x - b.x) == i32::abs(a.y - b.y) {
             return true;
         }
         return false;
@@ -229,11 +229,11 @@ impl Pos {
         return ret;
     }
 
-    pub fn dist(a: &Pos, b: &Pos) -> i64 {
-        i64::max(i64::abs(a.x - b.x), i64::abs(a.y - b.y))
+    pub fn dist(a: &Pos, b: &Pos) -> i32 {
+        i32::max(i32::abs(a.x - b.x), i32::abs(a.y - b.y))
     }
 
-    pub fn weight(a: &Pos, b: &Pos) -> i64 {
+    pub fn weight(a: &Pos, b: &Pos) -> i32 {
         (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y)
     }
 }

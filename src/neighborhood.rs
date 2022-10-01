@@ -41,7 +41,7 @@ impl Neighborhood {
         recursion_count: &mut usize,
         recursion_limit: &usize,
         performed_commands: &mut Vec<Command>,
-        start_score: f64,
+        start_score: f32,
     ) {
         if state.get_score(1.) > start_score {
             return;
@@ -52,7 +52,7 @@ impl Neighborhood {
         *recursion_count += 1;
         for _ in 0..DIR_MAX {
             let i = rnd::gen_range(0, DIR_MAX);
-            let dir = Dir::from_i64(i as i64);
+            let dir = Dir::from_i32(i as i32);
             if let Some(nearest_pos) =
                 state.grid.point(&pos).as_ref().unwrap().nearest_points[dir.val() as usize]
             {
@@ -86,7 +86,7 @@ impl Neighborhood {
             .clone();
         for _ in 0..DIR_MAX {
             let i = rnd::gen_range(0, DIR_MAX);
-            let diagonal_dir = Dir::from_i64(i as i64);
+            let diagonal_dir = Dir::from_i32(i as i32);
             if let Some(ignore_dir) = ignore_dir {
                 if ignore_dir == &diagonal_dir {
                     continue;
@@ -244,7 +244,7 @@ impl Neighborhood {
         ]
     }
 
-    pub fn from_i64(v: i64) -> Neighborhood {
+    pub fn from_i32(v: i32) -> Neighborhood {
         match v {
             0 => Neighborhood::Add,
             1 => Neighborhood::Delete,

@@ -1,4 +1,4 @@
-const TIME_LIMIT: f64 = 4.98;
+const TIME_LIMIT: f32 = 4.98;
 const LOOP_INTERVAL: usize = 100;
 const WRITE_SCORE_LOG: bool = false;
 
@@ -22,19 +22,19 @@ use state::*;
 use util::*;
 
 #[allow(unused_variables)]
-fn calc_start_temp(n: usize, m: usize) -> f64 {
-    let buf = f64::max(0., 1.1 - (m as f64 / n as f64)) * 2000.;
-    (500. - buf) * (n as f64 / 30.).powf(2.)
+fn calc_start_temp(n: usize, m: usize) -> f32 {
+    let buf = f32::max(0., 1.1 - (m as f32 / n as f32)) * 2000.;
+    (500. - buf) * (n as f32 / 30.).powf(2.)
 }
 
 #[allow(unused_variables)]
-fn calc_end_temp(n: usize, m: usize) -> f64 {
-    25. * (n as f64 / 30.).powf(2.)
+fn calc_end_temp(n: usize, m: usize) -> f32 {
+    25. * (n as f32 / 30.).powf(2.)
 }
 
 struct NeighborhoodSelector {
-    total_cnt: Vec<i64>,
-    adopted_cnt: Vec<i64>,
+    total_cnt: Vec<i32>,
+    adopted_cnt: Vec<i32>,
 }
 
 impl NeighborhoodSelector {
@@ -49,10 +49,10 @@ impl NeighborhoodSelector {
         for i in 0..self.total_cnt.len() {
             eprintln!(
                 "{:?}: (total_cnt: {}, adopted_cnt: {}, adopted_ratio: {:.4})",
-                Neighborhood::from_i64(i as i64),
+                Neighborhood::from_i32(i as i32),
                 self.total_cnt[i],
                 self.adopted_cnt[i],
-                self.adopted_cnt[i] as f64 / self.total_cnt[i] as f64,
+                self.adopted_cnt[i] as f32 / self.total_cnt[i] as f32,
             );
         }
     }
@@ -81,24 +81,24 @@ impl INeighborhoodSelector for NeighborhoodSelector {
 }
 
 struct Optimizer {
-    start_temp: f64,
-    end_temp: f64,
-    current_temp: f64,
+    start_temp: f32,
+    end_temp: f32,
+    current_temp: f32,
 }
 
 impl IOptimizer for Optimizer {
-    fn update_temp(&mut self, progress: f64) {
+    fn update_temp(&mut self, progress: f32) {
         self.current_temp = self.start_temp + (self.end_temp - self.start_temp) * progress;
     }
 
-    fn should_adopt_new_state(&self, score_diff: f64) -> bool {
+    fn should_adopt_new_state(&self, score_diff: f32) -> bool {
         let prob = (score_diff / self.current_temp).exp();
         return prob > rnd::nextf();
     }
 }
 
 impl Optimizer {
-    fn new(start_temp: f64, end_temp: f64) -> Optimizer {
+    fn new(start_temp: f32, end_temp: f32) -> Optimizer {
         let mut optimizer = Optimizer {
             start_temp,
             end_temp,
@@ -111,9 +111,9 @@ impl Optimizer {
 
 impl IState for State {
     #[allow(unused_variables)]
-    fn get_score(&self, progress: f64) -> f64 {
-        let base_score = self.score.base as f64;
-        let additional_score = self.score.additional as f64;
+    fn get_score(&self, progress: f32) -> f32 {
+        let base_score = self.score.base as f32;
+        let additional_score = self.score.additional as f32;
         base_score
     }
 
@@ -151,11 +151,11 @@ struct Solver {
     state: State,
     neighborhood_selector: NeighborhoodSelector,
     optimizer: Optimizer,
-    score_history: Vec<f64>,
+    score_history: Vec<f32>,
 }
 
 impl ISolver for Solver {
-    fn solve(&mut self, time_limit: f64) {
+    fn solve(&mut self, time_limit: f32) {
         let mut loop_count = 0;
         let mut best_state = self.state.clone();
         let mut progress = time::elapsed_seconds() / time_limit;
@@ -189,7 +189,7 @@ impl ISolver for Solver {
                 .step(&neighborhood, adopt_new_state);
 
             if WRITE_SCORE_LOG && is_interval {
-                self.score_history.push(self.state.score.base as f64);
+                self.score_history.push(self.state.score.base as f32);
             }
             if is_interval {
                 if self.state.get_score(1.) > best_state.get_score(1.) {
@@ -198,7 +198,6 @@ impl ISolver for Solver {
             }
             loop_count += 1;
         }
-        eprintln!("loop_count: {}", loop_count);
 
         self.state = best_state.clone();
     }
@@ -242,11 +241,12 @@ impl Solver {
         }
     }
 
+    #[allow(dead_code)]
     fn output_statistics(&self, n: usize, m: usize) {
         eprintln!("state_score: {}", self.state.get_score(1.));
         eprintln!(
             "real_score: {}",
-            calc_real_score(n, m, self.state.score.base as i64)
+            calc_real_score(n, m, self.state.score.base as i32)
         );
         self.neighborhood_selector.output_statistics();
 
@@ -254,7 +254,7 @@ impl Solver {
             // スコア遷移の書き出し
             let mut file = fs::File::create("tools/out/score_log.txt").unwrap();
             for score in &self.score_history {
-                let score = calc_real_score(n, m, *score as i64);
+                let score = calc_real_score(n, m, *score as i32);
                 file.write((score.to_string() + "\n").as_bytes()).unwrap();
             }
         }
@@ -270,8 +270,8 @@ fn main() {
         p: [Pos; m]
     }
 
-    let start_temp: f64 = calc_start_temp(n, m);
-    let end_temp: f64 = calc_end_temp(n, m);
+    let start_temp: f32 = calc_start_temp(n, m);
+    let end_temp: f32 = calc_end_temp(n, m);
 
     let state = State::new(n, p);
     let mut solver = Solver::new(
@@ -282,8 +282,4 @@ fn main() {
 
     solver.solve(TIME_LIMIT);
     solver.output();
-
-    // TODO: 最終提出では消す
-    solver.output_statistics(n, m);
-    eprintln!("run_time: {}", time::elapsed_seconds());
 }

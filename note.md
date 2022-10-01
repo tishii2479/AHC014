@@ -16,8 +16,8 @@ struct State {
 
 ```rust
 struct Pos {
-    x: i64,
-    y: i64,
+    x: i32,
+    y: i32,
 }
 
 struct Point {
@@ -448,5 +448,5 @@ TODO:
 - パラメータ調整
     - 近傍の確率
     - 温度
-- f64、i64をi32に置き換え
+- f64、i32をi32に置き換え
 - 不要な出力を消す
