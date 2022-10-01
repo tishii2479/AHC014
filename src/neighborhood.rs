@@ -21,7 +21,7 @@ impl Neighborhood {
     }
 
     fn perform_multiple_add(state: &mut State) -> Vec<Command> {
-        let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
+        let selected_p = state.sample_point_pos();
         let mut performed_commands = vec![];
         let mut recursion_count = 0;
         Neighborhood::attempt_multiple_add(
@@ -76,7 +76,7 @@ impl Neighborhood {
     }
 
     fn perform_add(state: &mut State) -> Vec<Command> {
-        let selected_p = state.points[rnd::gen_range(0, state.points.len()) as usize].clone();
+        let selected_p = state.sample_point_pos();
         Neighborhood::attempt_add(state, &selected_p, None)
     }
 
@@ -153,7 +153,7 @@ impl Neighborhood {
         if state.squares.len() == 0 {
             return vec![];
         }
-        let square = state.squares[rnd::gen_range(0, state.squares.len())];
+        let square = state.sample_square();
         Neighborhood::attempt_delete(state, &square)
     }
 
@@ -166,7 +166,7 @@ impl Neighborhood {
         if state.squares.len() == 0 {
             return vec![];
         }
-        let square = state.squares[rnd::gen_range(0, state.squares.len()) as usize];
+        let square = state.sample_square();
         Neighborhood::attempt_change_square(state, &square)
     }
 
@@ -200,7 +200,7 @@ impl Neighborhood {
         if state.squares.len() == 0 {
             return vec![];
         }
-        let selected_square = state.squares[rnd::gen_range(0, state.squares.len()) as usize];
+        let selected_square = state.sample_square();
         Neighborhood::attempt_split_square(state, &selected_square)
     }
 

@@ -117,6 +117,14 @@ impl State {
         performed_commands.push(Command::Delete { square: *square });
     }
 
+    pub fn sample_point_pos(&self) -> Pos {
+        self.points[rnd::gen_range(0, self.points.len()) as usize]
+    }
+
+    pub fn sample_square(&self) -> Square {
+        self.squares[rnd::gen_range(0, self.squares.len()) as usize]
+    }
+
     pub fn calc_deletion_size(
         &mut self,
         new_pos: &Pos,
