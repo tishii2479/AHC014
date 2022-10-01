@@ -3,20 +3,29 @@ use crate::def::*;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Grid {
     pub size: usize,
-    pub points: Vec<Vec<Option<Point>>>,
+    pub points: Vec<Vec<Point>>,
     pub edges: Vec<Vec<Vec<bool>>>,
 }
 
 impl Grid {
     pub fn new(n: usize) -> Grid {
+        let mut points = vec![vec![Point::new(&Pos { x: 0, y: 0 }); n]; n];
+        for i in 0..n {
+            for j in 0..n {
+                points[i][j].pos = Pos {
+                    x: j as i32,
+                    y: i as i32,
+                };
+            }
+        }
         Grid {
             size: n,
-            points: vec![vec![None; n]; n],
+            points,
             edges: vec![vec![vec![false; DIR_MAX]; n]; n],
         }
     }
 
-    pub fn point(&mut self, pos: &Pos) -> &mut Option<Point> {
+    pub fn point(&mut self, pos: &Pos) -> &mut Point {
         &mut self.points[pos.y as usize][pos.x as usize]
     }
 
@@ -68,11 +77,7 @@ impl Grid {
 
     pub fn create_square(&mut self, square: &Square, is_reverse: bool) {
         // 点を追加する
-        self.add_point(
-            &square.new_pos,
-            Point::new(&square.new_pos, true),
-            Some(square.clone()),
-        );
+        self.add_point(&square.new_pos, Some(square.clone()));
 
         // 辺を追加する
         self.connect(&square.connect[0], &square.new_pos, is_reverse);
@@ -104,38 +109,43 @@ impl Grid {
 
     pub fn remove_point(&mut self, pos: &Pos) {
         debug_assert!(self.has_point(&pos));
-        let nearest_points = self.point(&pos).as_ref().unwrap().nearest_points.clone();
+        let nearest_points = self.point(&pos).nearest_points.clone();
         for i in 0..DIR_MAX {
             let dir = Dir::from_i32(i as i32);
             if let Some(nearest_pos) = &nearest_points[dir.val() as usize] {
                 debug_assert!(self.has_point(&nearest_pos));
 
                 if let Some(opposite_nearest_pos) = &nearest_points[dir.rev().val() as usize] {
-                    self.point(nearest_pos).as_mut().unwrap().nearest_points
-                        [dir.rev().val() as usize] = Some(opposite_nearest_pos.clone());
+                    self.point(nearest_pos).nearest_points[dir.rev().val() as usize] =
+                        Some(opposite_nearest_pos.clone());
                 } else {
-                    self.point(nearest_pos).as_mut().unwrap().nearest_points
-                        [dir.rev().val() as usize] = None;
+                    self.point(nearest_pos).nearest_points[dir.rev().val() as usize] = None;
                 }
             }
         }
-        self.points[pos.y as usize][pos.x as usize] = None;
+        for i in 0..DIR_MAX {
+            self.point(&pos).nearest_points[i] = None;
+            self.point(&pos).used_dir[i] = false;
+        }
+        self.point(&pos).created_points.clear();
+        self.point(&pos).added_info = None;
+        self.point(&pos).exists = false;
     }
 
-    pub fn add_point(&mut self, pos: &Pos, mut point: Point, square: Option<Square>) {
+    pub fn add_point(&mut self, pos: &Pos, square: Option<Square>) {
         debug_assert!(!self.has_point(&pos));
+        self.point(pos).added_info = square;
+        self.point(pos).exists = true;
 
         for i in 0..DIR_MAX {
             let dir = Dir::from_i32(i as i32);
             if let Some(nearest_pos) = self.nearest_point_pos(&pos, &dir) {
-                let nearest_point = self.point(&nearest_pos).as_mut().unwrap();
+                let nearest_point = self.point(&nearest_pos);
 
                 nearest_point.nearest_points[dir.rev().val() as usize] = Some(pos.clone());
-                point.nearest_points[dir.val() as usize] = Some(nearest_pos.clone());
+                self.point(pos).nearest_points[dir.val() as usize] = Some(nearest_pos.clone());
             }
         }
-        point.added_info = square;
-        self.points[pos.y as usize][pos.x as usize] = Some(point);
     }
 
     fn add_edge(&mut self, pos: &Pos, dir: &Dir) {
@@ -147,7 +157,7 @@ impl Grid {
     }
 
     pub fn has_point(&self, pos: &Pos) -> bool {
-        self.points[pos.y as usize][pos.x as usize].is_some()
+        self.points[pos.y as usize][pos.x as usize].exists
     }
 
     pub fn has_edge(&self, pos: &Pos, dir: &Dir) -> bool {
@@ -171,21 +181,13 @@ impl Grid {
     }
 
     fn unregister_created_points(&mut self, a: &Pos, target: &Pos) {
-        let created_points = &self.point(&a).as_mut().unwrap().created_points;
+        let created_points = &self.point(&a).created_points;
         let target_index = created_points.iter().position(|x| *x == *target).unwrap();
-        self.point(&a)
-            .as_mut()
-            .unwrap()
-            .created_points
-            .remove(target_index);
+        self.point(&a).created_points.remove(target_index);
     }
 
     fn register_created_points(&mut self, a: &Pos, target: &Pos) {
-        self.point(&a)
-            .as_mut()
-            .unwrap()
-            .created_points
-            .push(target.clone());
+        self.point(&a).created_points.push(target.clone());
     }
 
     pub fn is_valid(&self, pos: &Pos) -> bool {

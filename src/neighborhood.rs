@@ -58,9 +58,7 @@ impl Neighborhood {
             }
             used_bits |= 1 << i;
             let dir = Dir::from_i32(i as i32);
-            if let Some(nearest_pos) =
-                state.grid.point(&pos).as_ref().unwrap().nearest_points[dir.val() as usize]
-            {
+            if let Some(nearest_pos) = state.grid.point(&pos).nearest_points[dir.val() as usize] {
                 let mut add = Neighborhood::attempt_add(state, &nearest_pos, None);
                 performed_commands.append(&mut add);
                 Neighborhood::attempt_multiple_add(
@@ -82,13 +80,7 @@ impl Neighborhood {
 
     fn attempt_add(state: &mut State, pos: &Pos, ignore_dir: Option<&Dir>) -> Vec<Command> {
         debug_assert!(state.grid.has_point(&pos));
-        let nearest_points = state
-            .grid
-            .point(&pos)
-            .as_ref()
-            .unwrap()
-            .nearest_points
-            .clone();
+        let nearest_points = state.grid.point(&pos).nearest_points.clone();
         let mut used_bits: usize = 0;
         for _ in 0..DIR_MAX {
             let i = rnd::gen_range(0, DIR_MAX);
@@ -205,13 +197,7 @@ impl Neighborhood {
     }
 
     fn attempt_split_square(state: &mut State, square: &Square) -> Vec<Command> {
-        let nearest_points = state
-            .grid
-            .point(&square.diagonal)
-            .as_ref()
-            .unwrap()
-            .nearest_points
-            .clone();
+        let nearest_points = state.grid.point(&square.diagonal).nearest_points.clone();
         let dir1 = Pos::get_dir(&square.diagonal, &square.connect[0]);
         let dir2 = Pos::get_dir(&square.diagonal, &square.connect[1]);
 
@@ -280,9 +266,7 @@ fn test_split_square() {
     let square = Square::new(new_pos.clone(), diagonal.clone(), connect.clone());
     let mut state = State::new(n, p);
     state.perform_add(&square, false);
-    state
-        .grid
-        .add_point(&add_pos, Point::new(&add_pos, true), None);
+    state.grid.add_point(&add_pos, None);
 
     Neighborhood::attempt_split_square(&mut state, &square);
 
