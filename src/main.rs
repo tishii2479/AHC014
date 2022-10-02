@@ -1,4 +1,4 @@
-const TIME_LIMIT: f32 = 4.98;
+const TIME_LIMIT: f32 = 4.97;
 const LOOP_INTERVAL: usize = 100;
 const WRITE_SCORE_LOG: bool = false;
 
